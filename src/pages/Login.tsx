@@ -131,14 +131,14 @@ export default function Login() {
               <p className="text-gray-600 text-sm mb-3">Don't have an account?</p>
               <div className="grid grid-cols-2 gap-3">
                 <Link 
-                  to="/register-technician" 
+                  to="/register/technician" 
                   className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-blue-50 hover:border-blue-300 transition-colors text-sm font-medium"
                 >
                   <Icons.Wrench className="w-4 h-4" />
                   Technician
                 </Link>
                 <Link 
-                  to="/register-admin" 
+                  to="/register/admin" 
                   className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-purple-50 hover:border-purple-300 transition-colors text-sm font-medium"
                 >
                   <Icons.Shield className="w-4 h-4" />

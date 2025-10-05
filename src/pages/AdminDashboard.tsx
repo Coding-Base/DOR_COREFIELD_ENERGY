@@ -163,6 +163,11 @@ export default function AdminDashboard(): JSX.Element {
   const [issueDesc, setIssueDesc] = useState('')
   const [issueTechId, setIssueTechId] = useState<string>('')
 
+  // NEW: issue type, next due date, linked issues
+  const [issueType, setIssueType] = useState<'fixing' | 'upgrading' | 'servicing'>('fixing')
+  const [nextDueDate, setNextDueDate] = useState<string>('')
+  const [linkedIssues, setLinkedIssues] = useState<number[]>([])
+
   // --- Invoice form state ---
   const [invoiceIssueId, setInvoiceIssueId] = useState('')
   const issuePreviewQ = useIssueById(invoiceIssueId)
@@ -192,6 +197,25 @@ export default function AdminDashboard(): JSX.Element {
   const vehiclesForSelectedCustomer = unwrapList(vehiclesForIssueCustomerQ.data)
 
   // -------------------------
+  // NEW: Issues-for-vehicle+customer query (used to populate linked issues)
+  // Only fetch when BOTH customer and vehicle are selected, so results are only previous issues
+  // created by the selected customer for that specific vehicle.
+  // -------------------------
+  const fetchIssuesForVehicleAndCustomer = async (vehicleId?: string | null, customerId?: string | null) => {
+    if (!vehicleId || !customerId) return []
+    const resp = await api.get('/issues/', { params: { vehicle: vehicleId, customer: customerId } })
+    return resp.data
+  }
+
+  const vehicleIssuesQ = useQuery(
+    ['vehicle-issues', issueVehicleId || 'none', issueCustomerId || 'none'],
+    () => fetchIssuesForVehicleAndCustomer(issueVehicleId, issueCustomerId),
+    { enabled: !!issueVehicleId && !!issueCustomerId, staleTime: 0, cacheTime: 1000 * 60 * 5 }
+  )
+
+  const vehicleIssues = unwrapList(vehicleIssuesQ.data)
+
+  // -------------------------
   // derived invoice totals
   // -------------------------
   const issueTotalItems = useMemo(() => {
@@ -211,31 +235,29 @@ export default function AdminDashboard(): JSX.Element {
   const downloadInvoicePdf = async (invoiceId: string) => {
     try {
       setDownloading(true)
-      // Use the correct endpoint: /api/invoices/{invoice_id}/pdf/
       const response = await api.get(`/invoices/${invoiceId}/pdf/`, {
-        responseType: 'blob' // Important for file downloads
-      });
+        responseType: 'blob'
+      })
 
-      // Create blob and download
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `invoice-${invoiceId}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      const blob = new Blob([response.data], { type: 'application/pdf' })
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `invoice-${invoiceId}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
     } catch (error) {
-      console.error('Error downloading PDF:', error);
-      alert('Invoice created but failed to download PDF. You can download it from the invoices list.');
+      console.error('Error downloading PDF:', error)
+      alert('Invoice created but failed to download PDF. You can download it from the invoices list.')
     } finally {
       setDownloading(false)
     }
   }
 
   // -------------------------
-  // Handlers
+  // Handlers (unchanged from original)
   // -------------------------
   const handleCreateCustomer = async () => {
     try {
@@ -321,13 +343,26 @@ export default function AdminDashboard(): JSX.Element {
       const payload: any = {
         customer: issueCustomerId,
         vehicle: issueVehicleId,
-        description: issueDesc
+        description: issueDesc,
+        issue_type: issueType
       }
-      if (issueTechId) payload.assigned_to_id = issueTechId
+      if (issueTechId) {
+        payload.assigned_to = issueTechId
+        payload.assigned_to_id = issueTechId
+      }
+
+      if (issueType === 'servicing' && nextDueDate) {
+        payload.next_due_date = nextDueDate
+      }
+
+      if (linkedIssues && linkedIssues.length > 0) {
+        payload.linked_issues = linkedIssues
+      }
 
       await createIssue.mutateAsync(payload)
       qc.invalidateQueries(['issues'])
       setIssueDesc(''); setIssueVehicleId(''); setIssueCustomerId(''); setIssueTechId('')
+      setIssueType('fixing'); setNextDueDate(''); setLinkedIssues([])
       alert('Issue created')
     } catch (e: any) {
       console.error('Create issue error', e)
@@ -339,33 +374,26 @@ export default function AdminDashboard(): JSX.Element {
   const handleCreateInvoice = async () => {
     try {
       if (!invoiceIssueId) { alert('Please enter/select an issue ID'); return }
-      
-      // First create the invoice and get the response
-      const response = await createInvoice.mutateAsync({ 
-        issue: invoiceIssueId, 
-        service_charge: parseFloat(serviceCharge || '0') || 0 
-      });
 
-      // Extract the invoice ID from the response
-      const invoiceId = response.id || response.data?.id;
+      const response = await createInvoice.mutateAsync({
+        issue: invoiceIssueId,
+        service_charge: parseFloat(serviceCharge || '0') || 0
+      })
 
+      const invoiceId = (response && ((response as any).id || (response as any).data?.id))
       if (!invoiceId) {
-        throw new Error('Invoice created but no ID returned');
+        alert('Invoice created but could not determine invoice ID for download. Check invoices list.')
+        qc.invalidateQueries(['invoices'])
+        return
       }
 
-      // Then download the PDF using the invoice ID
-      await downloadInvoicePdf(invoiceId);
-
+      await downloadInvoicePdf(String(invoiceId))
       qc.invalidateQueries(['invoices'])
       setInvoiceIssueId(''); setServiceCharge('')
       alert('Invoice created and downloaded successfully!')
     } catch (e: any) {
       console.error('Create invoice error', e)
-      if (e.message === 'Invoice created but no ID returned') {
-        alert('Invoice created but could not retrieve invoice ID for download. Check invoices list.');
-      } else {
-        alert('Failed to create invoice: ' + (e?.response?.data ? JSON.stringify(e.response.data) : 'unknown error'))
-      }
+      alert('Failed to create invoice: ' + (e?.response?.data ? JSON.stringify(e.response.data) : 'unknown error'))
     }
   }
 
@@ -392,7 +420,13 @@ export default function AdminDashboard(): JSX.Element {
   // clear selected vehicle whenever customer changes
   useEffect(() => {
     setIssueVehicleId('')
+    setLinkedIssues([])
   }, [issueCustomerId])
+
+  // clear linkedIssues when vehicle changes
+  useEffect(() => {
+    setLinkedIssues([])
+  }, [issueVehicleId])
 
   // Navigation items
   const navItems = [
@@ -401,6 +435,11 @@ export default function AdminDashboard(): JSX.Element {
     { key: 'issue' as const, label: 'Create Issue', icon: Icons.Issue },
     { key: 'invoice' as const, label: 'Create Invoice', icon: Icons.Invoice },
   ]
+
+  // helper to toggle linked issue selection
+  const toggleLinkedIssue = (id: number) => {
+    setLinkedIssues(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -421,8 +460,8 @@ export default function AdminDashboard(): JSX.Element {
                   key={item.key}
                   onClick={() => setTab(item.key)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                    tab === item.key 
-                      ? 'bg-white text-blue-700 shadow-lg' 
+                    tab === item.key
+                      ? 'bg-white text-blue-700 shadow-lg'
                       : 'text-blue-100 hover:bg-blue-700 hover:text-white'
                   }`}
                 >
@@ -672,15 +711,73 @@ export default function AdminDashboard(): JSX.Element {
                 <Select
                   label="Vehicle"
                   value={issueVehicleId}
-                  onChange={setIssueVehicleId}
-                  options={vehiclesForSelectedCustomer.map((v: any) => ({ 
-                    value: v.id, 
-                    label: `${v.model?.name || 'Unknown Model'} - ${v.plate_number} (ID: ${v.id})` 
+                  onChange={val => { setIssueVehicleId(val); /* vehicleIssuesQ refetches automatically due to query key change */ }}
+                  options={vehiclesForSelectedCustomer.map((v: any) => ({
+                    value: v.id,
+                    label: `${v.model?.name || 'Unknown Model'} - ${v.plate_number} (ID: ${v.id})`
                   }))}
                   placeholder={!issueCustomerId ? 'Select a customer first' : (vehiclesForSelectedCustomer.length === 0 ? 'No vehicles for this customer' : 'Select vehicle')}
                   disabled={!issueCustomerId || vehiclesForIssueCustomerQ.isLoading}
                   required
                 />
+
+                {/* NEW: Issue Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Issue Type</label>
+                  <select
+                    value={issueType}
+                    onChange={e => setIssueType(e.target.value as any)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+                  >
+                    <option value="fixing">Fixing</option>
+                    <option value="upgrading">Upgrading</option>
+                    <option value="servicing">Servicing</option>
+                  </select>
+                </div>
+
+                {/* If servicing, show next due date */}
+                {issueType === 'servicing' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Next Due Date (for servicing)</label>
+                    <input
+                      type="date"
+                      value={nextDueDate}
+                      onChange={e => setNextDueDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <div className="text-xs text-gray-500 mt-1">The next service date will be stored with the issue.</div>
+                  </div>
+                )}
+
+                {/* Link Issues (previous issues for this vehicle AND customer) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Linked Issue(s)</label>
+
+                  {(!issueCustomerId || !issueVehicleId) ? (
+                    <div className="text-sm text-gray-500">Select both customer and vehicle to see previous issues for that vehicle/customer.</div>
+                  ) : vehicleIssuesQ.isLoading ? (
+                    <div className="text-sm text-gray-500">Loading previous issues for this vehicle/customer...</div>
+                  ) : vehicleIssues.length === 0 ? (
+                    <div className="text-sm text-gray-500">No previous issues for this vehicle & customer combination.</div>
+                  ) : (
+                    <div className="space-y-2 max-h-44 overflow-auto border p-2 rounded">
+                      {vehicleIssues.map((vi: any) => (
+                        <label key={vi.id} className="flex items-start gap-2 cursor-pointer p-2 hover:bg-gray-50 rounded">
+                          <input
+                            type="checkbox"
+                            checked={linkedIssues.includes(vi.id)}
+                            onChange={() => toggleLinkedIssue(vi.id)}
+                          />
+                          <div>
+                            <div className="text-sm font-medium">#{vi.id} — {vi.description?.slice(0, 80) || '(no description)'}</div>
+                            <div className="text-xs text-gray-500">Status: {vi.status} • Created: {new Date(vi.created_at).toLocaleString()}</div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                  <div className="text-xs text-gray-500 mt-1">Select previous issues you want linked to this new issue. These will appear on the issue detail page as links.</div>
+                </div>
 
                 <Select
                   label="Assign Technician"
@@ -714,7 +811,7 @@ export default function AdminDashboard(): JSX.Element {
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => { setIssueCustomerId(''); setIssueVehicleId(''); setIssueDesc(''); setIssueTechId('') }}
+                    onClick={() => { setIssueCustomerId(''); setIssueVehicleId(''); setIssueDesc(''); setIssueTechId(''); setIssueType('fixing'); setNextDueDate(''); setLinkedIssues([]) }}
                   >
                     Clear Form
                   </Button>

@@ -1,6 +1,6 @@
 // src/pages/IssueDetail.tsx
-import React, { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import React, { useState } from 'react'
+import { useParams, Link } from 'react-router-dom'
 import Modal from '../components/Modal'
 import { useIssue } from '../api/hooks'
 import { useAddTreatment, useAddItem, useAddRecommendation, useChangeStatus } from '../api/hooks'
@@ -59,24 +59,24 @@ const Button: React.FC<{
 
 // Status Badge Component
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     fixing: 'bg-blue-100 text-blue-800 border-blue-200',
     completed: 'bg-green-100 text-green-800 border-green-200',
     closed: 'bg-gray-100 text-gray-800 border-gray-200'
   }
 
-  const color = statusColors[status.toLowerCase() as keyof typeof statusColors] || 'bg-gray-100 text-gray-800 border-gray-200'
+  const color = statusColors[status?.toLowerCase?.() || ''] || 'bg-gray-100 text-gray-800 border-gray-200'
 
   return (
     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${color}`}>
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {status ? (status.charAt(0).toUpperCase() + status.slice(1)) : 'Unknown'}
     </span>
   )
 }
 
 // Custom hook to fetch vehicle details
-const useVehicle = (vehicleId: string | number) => {
+const useVehicle = (vehicleId: string | number | undefined) => {
   return useQuery(
     ['vehicle', vehicleId],
     () => api.get(`/vehicles/${vehicleId}/`).then(res => res.data),
@@ -85,7 +85,7 @@ const useVehicle = (vehicleId: string | number) => {
 }
 
 // Custom hook to fetch customer details
-const useCustomer = (customerId: string | number) => {
+const useCustomer = (customerId: string | number | undefined) => {
   return useQuery(
     ['customer', customerId],
     () => api.get(`/customers/${customerId}/`).then(res => res.data),
@@ -94,7 +94,7 @@ const useCustomer = (customerId: string | number) => {
 }
 
 // Custom hook to fetch vehicle model details
-const useVehicleModel = (modelId: string | number) => {
+const useVehicleModel = (modelId: string | number | undefined) => {
   return useQuery(
     ['vehicle-model', modelId],
     () => api.get(`/vehicle-models/${modelId}/`).then(res => res.data),
@@ -105,11 +105,14 @@ const useVehicleModel = (modelId: string | number) => {
 export default function IssueDetail() {
   const { id } = useParams()
   const { data: issue, isLoading: issueLoading } = useIssue(id || '')
-  
+
   // Fetch additional data
-  const { data: vehicle, isLoading: vehicleLoading } = useVehicle(issue?.vehicle || '')
-  const { data: customer, isLoading: customerLoading } = useCustomer(issue?.customer || '')
-  const { data: vehicleModel, isLoading: modelLoading } = useVehicleModel(vehicle?.model || '')
+  const vehicleId = issue?.vehicle?.id || issue?.vehicle
+  const customerId = issue?.customer?.id || issue?.customer
+  const { data: vehicle, isLoading: vehicleLoading } = useVehicle(vehicleId)
+  const { data: customer, isLoading: customerLoading } = useCustomer(customerId)
+  const modelId = vehicle?.model || issue?.vehicle?.model || undefined
+  const { data: vehicleModel, isLoading: modelLoading } = useVehicleModel(modelId)
 
   const changeStatus = useChangeStatus()
   const addTreatment = useAddTreatment()
@@ -125,6 +128,38 @@ export default function IssueDetail() {
 
   const isLoading = issueLoading || vehicleLoading || customerLoading || modelLoading
 
+  // Normalize possible linked issue fields into an array of IDs
+  const resolveLinkedIds = (): number[] => {
+    if (!issue) return []
+    const possible = (issue.linked_issue ?? issue.linked_issues ?? issue.linked ?? null)
+    if (!possible) return []
+    if (Array.isArray(possible)) return possible.map((x: any) => Number(x)).filter(Boolean)
+    if (typeof possible === 'number') return [possible]
+    if (typeof possible === 'string') {
+      // maybe a single numeric string or comma-separated
+      if (possible.indexOf(',') !== -1) {
+        return possible.split(',').map(s => Number(s.trim())).filter(Boolean)
+      }
+      const n = Number(possible)
+      return Number.isFinite(n) ? [n] : []
+    }
+    return []
+  }
+
+  const linkedIds = resolveLinkedIds()
+
+  // Fetch linked issue summaries (single query that loads all linked ids)
+  const linkedIssuesQ = useQuery(
+    ['linked-issues', linkedIds.join(',')],
+    async () => {
+      if (linkedIds.length === 0) return []
+      const promises = linkedIds.map(id => api.get(`/issues/${id}/`).then(r => r.data))
+      const results = await Promise.all(promises)
+      return results
+    },
+    { enabled: linkedIds.length > 0 }
+  )
+
   if (isLoading) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="text-center">
@@ -133,12 +168,12 @@ export default function IssueDetail() {
       </div>
     </div>
   )
-  
+
   if (!issue) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="text-center">
         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Icons.Vehicle className="w-8 h-8 text-red-600" />
+          <Icons.Vehicle />
         </div>
         <h2 className="text-xl font-semibold text-gray-900 mb-2">Issue Not Found</h2>
         <p className="text-gray-600">The requested issue could not be found.</p>
@@ -175,13 +210,13 @@ export default function IssueDetail() {
     return null
   }
 
-  const vehiclePhotoUrl = buildImageUrl(vehicle?.photo)
+  const vehiclePhotoUrl = buildImageUrl(vehicle?.photo ?? issue?.vehicle?.photo)
 
   const handleDownloadInvoice = async () => {
     try {
-      if (!issue || !issue.invoices || issue.invoices.length === 0) { 
-        alert('No invoice found for this issue'); 
-        return 
+      if (!issue || !issue.invoices || issue.invoices.length === 0) {
+        alert('No invoice found for this issue')
+        return
       }
       const invId = issue.invoices[0].id
       const resp = await api.get(`/invoices/${invId}/pdf/`, { responseType: 'blob' })
@@ -198,7 +233,8 @@ export default function IssueDetail() {
     }
   }
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return '—'
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -209,29 +245,12 @@ export default function IssueDetail() {
   }
 
   // Helper functions to safely access data
-  const getVehicleModel = () => {
-    return vehicleModel?.name || 'N/A'
-  }
-
-  const getVehicleColor = () => {
-    return vehicle?.color || 'N/A'
-  }
-
-  const getVehiclePlate = () => {
-    return vehicle?.plate_number || 'N/A'
-  }
-
-  const getCustomerName = () => {
-    return customer?.name || 'N/A'
-  }
-
-  const getCustomerEmail = () => {
-    return customer?.email || 'N/A'
-  }
-
-  const getCustomerPhone = () => {
-    return customer?.phone || 'N/A'
-  }
+  const getVehicleModel = () => vehicleModel?.name || issue?.vehicle?.model?.name || 'N/A'
+  const getVehicleColor = () => vehicle?.color || issue?.vehicle?.color || 'N/A'
+  const getVehiclePlate = () => vehicle?.plate_number || issue?.vehicle?.plate_number || 'N/A'
+  const getCustomerName = () => customer?.name || issue?.customer?.name || 'N/A'
+  const getCustomerEmail = () => customer?.email || issue?.customer?.email || 'N/A'
+  const getCustomerPhone = () => customer?.phone || issue?.customer?.phone || 'N/A'
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -241,7 +260,7 @@ export default function IssueDetail() {
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
             <div className="flex items-start gap-4">
               <div className="p-3 bg-blue-600 rounded-lg">
-                <Icons.Wrench className="text-white" />
+                <Icons.Wrench />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Issue #{issue.id}</h1>
@@ -303,20 +322,20 @@ export default function IssueDetail() {
                         <div className="mt-2 space-y-1">
                           {getCustomerEmail() !== 'N/A' && (
                             <p className="text-sm text-gray-600 flex items-center gap-2">
-                              <Icons.Email className="w-4 h-4" />
+                              <Icons.Email />
                               {getCustomerEmail()}
                             </p>
                           )}
                           {getCustomerPhone() !== 'N/A' && (
                             <p className="text-sm text-gray-600 flex items-center gap-2">
-                              <Icons.Phone className="w-4 h-4" />
+                              <Icons.Phone />
                               {getCustomerPhone()}
                             </p>
                           )}
                         </div>
                       </div>
                     </div>
-                    
+
                     <div>
                       <label className="text-sm font-medium text-gray-700">Issue Description</label>
                       <p className="mt-2 p-4 bg-gray-50 rounded-lg text-gray-700 leading-relaxed">
@@ -340,6 +359,40 @@ export default function IssueDetail() {
                         </div>
                       </div>
                     )}
+
+                    {/* Linked Issues */}
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Linked Issue(s)</label>
+                      <div className="mt-2">
+                        {linkedIds.length === 0 ? (
+                          <p className="text-sm text-gray-500">No linked issues</p>
+                        ) : linkedIssuesQ.isLoading ? (
+                          <div className="text-sm text-gray-500 flex items-center gap-2"><Icons.Loading /> Loading linked issues...</div>
+                        ) : (linkedIssuesQ.data && linkedIssuesQ.data.length > 0) ? (
+                          <div className="space-y-2">
+                            {linkedIssuesQ.data.map((li: any) => (
+                              <Link
+                                key={li.id}
+                                to={`/issues/${li.id}`}
+                                className="block p-3 bg-white border border-gray-100 rounded-lg hover:shadow-sm transition-shadow"
+                              >
+                                <div className="flex justify-between items-start gap-4">
+                                  <div className="flex-1">
+                                    <div className="font-medium text-gray-900">Issue #{li.id} - {li.vehicle?.model?.name || li.vehicle?.model || 'Model'}</div>
+                                    <div className="text-sm text-gray-600 mt-1">{(li.description || '').slice(0, 100)}{(li.description || '').length > 100 ? '…' : ''}</div>
+                                  </div>
+                                  <div className="text-xs text-gray-400 whitespace-nowrap ml-4">
+                                    {formatDate(li.created_at)}
+                                  </div>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500">Linked issue(s) not found</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -354,9 +407,9 @@ export default function IssueDetail() {
                       onClick={() => setImgModalOpen(true)}
                       className="w-full block rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow duration-200"
                     >
-                      <img 
-                        src={vehiclePhotoUrl} 
-                        alt={`Vehicle ${getVehiclePlate()}`} 
+                      <img
+                        src={vehiclePhotoUrl}
+                        alt={`Vehicle ${getVehiclePlate()}`}
                         className="w-full h-32 object-cover"
                       />
                       <div className="p-2 bg-gray-50 text-xs text-gray-600 text-center">
@@ -365,8 +418,8 @@ export default function IssueDetail() {
                     </button>
                   ) : (
                     <div className="w-full h-32 flex flex-col items-center justify-center bg-gray-50 border border-gray-200 rounded-lg text-gray-500">
-                      <Icons.Photo className="w-8 h-8 mb-2" />
-                      <span className="text-sm">No photo available</span>
+                      <Icons.Photo />
+                      <span className="text-sm mt-2">No photo available</span>
                     </div>
                   )}
                 </div>
@@ -377,9 +430,9 @@ export default function IssueDetail() {
             <Card className="p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Update Status</h3>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <select 
-                  value={status} 
-                  onChange={e => setStatus(e.target.value)} 
+                <select
+                  value={status}
+                  onChange={e => setStatus(e.target.value)}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Select new status...</option>
@@ -410,22 +463,22 @@ export default function IssueDetail() {
                   <Icons.Wrench />
                   Add Treatment
                 </h4>
-                <textarea 
-                  value={treatmentText} 
-                  onChange={e => setTreatmentText(e.target.value)} 
+                <textarea
+                  value={treatmentText}
+                  onChange={e => setTreatmentText(e.target.value)}
                   placeholder="Describe the treatment performed..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-32 resize-none"
                 />
                 <Button
                   variant="primary"
                   loading={addTreatment.isLoading}
-                  onClick={() => { 
+                  onClick={() => {
                     if (!treatmentText.trim()) {
-                      alert('Please enter treatment description');
-                      return;
+                      alert('Please enter treatment description')
+                      return
                     }
-                    addTreatment.mutate({ issue: id, description: treatmentText }); 
-                    setTreatmentText('') 
+                    addTreatment.mutate({ issue: id, description: treatmentText })
+                    setTreatmentText('')
                   }}
                   className="w-full mt-3"
                 >
@@ -440,29 +493,29 @@ export default function IssueDetail() {
                   <Icons.Plus />
                   Add Item
                 </h4>
-                <input 
-                  value={itemName} 
-                  onChange={e => setItemName(e.target.value)} 
-                  placeholder="Item name" 
+                <input
+                  value={itemName}
+                  onChange={e => setItemName(e.target.value)}
+                  placeholder="Item name"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-3"
                 />
-                <input 
-                  value={itemAmount} 
-                  onChange={e => setItemAmount(e.target.value)} 
-                  placeholder="Amount" 
+                <input
+                  value={itemAmount}
+                  onChange={e => setItemAmount(e.target.value)}
+                  placeholder="Amount"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-3"
                 />
                 <Button
                   variant="primary"
                   loading={addItem.isLoading}
-                  onClick={() => { 
+                  onClick={() => {
                     if (!itemName.trim() || !itemAmount.trim()) {
-                      alert('Please enter both item name and amount');
-                      return;
+                      alert('Please enter both item name and amount')
+                      return
                     }
-                    addItem.mutate({ issue: id, name: itemName, amount: itemAmount }); 
-                    setItemName(''); 
-                    setItemAmount('') 
+                    addItem.mutate({ issue: id, name: itemName, amount: itemAmount })
+                    setItemName('')
+                    setItemAmount('')
                   }}
                   className="w-full"
                 >
@@ -477,22 +530,22 @@ export default function IssueDetail() {
                   <Icons.External />
                   Recommendation
                 </h4>
-                <textarea 
-                  value={recText} 
-                  onChange={e => setRecText(e.target.value)} 
+                <textarea
+                  value={recText}
+                  onChange={e => setRecText(e.target.value)}
                   placeholder="Add recommendations for the customer..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-32 resize-none"
                 />
                 <Button
                   variant="outline"
                   loading={addRec.isLoading}
-                  onClick={() => { 
+                  onClick={() => {
                     if (!recText.trim()) {
-                      alert('Please enter recommendation text');
-                      return;
+                      alert('Please enter recommendation text')
+                      return
                     }
-                    addRec.mutate({ issue: id, text: recText }); 
-                    setRecText('') 
+                    addRec.mutate({ issue: id, text: recText })
+                    setRecText('')
                   }}
                   className="w-full mt-3"
                 >
@@ -572,24 +625,24 @@ export default function IssueDetail() {
         <div className="flex flex-col items-center gap-6">
           {vehiclePhotoUrl ? (
             <>
-              <img 
-                src={vehiclePhotoUrl} 
-                alt={`Vehicle ${getVehiclePlate()}`} 
+              <img
+                src={vehiclePhotoUrl}
+                alt={`Vehicle ${getVehiclePlate()}`}
                 className="max-h-[60vh] max-w-full object-contain rounded-lg"
               />
               <div className="flex gap-3">
-                <a 
-                  href={vehiclePhotoUrl} 
-                  target="_blank" 
-                  rel="noreferrer" 
+                <a
+                  href={vehiclePhotoUrl}
+                  target="_blank"
+                  rel="noreferrer"
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                 >
                   <Icons.External />
                   Open in New Tab
                 </a>
-                <a 
-                  href={vehiclePhotoUrl} 
-                  download={`vehicle_${getVehiclePlate()}`} 
+                <a
+                  href={vehiclePhotoUrl}
+                  download={`vehicle_${getVehiclePlate()}`}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
                 >
                   <Icons.Download />

@@ -53,7 +53,7 @@ export default function TechnicianRegister() {
 
       if (res.data.access) localStorage.setItem('access', res.data.access)
       if (res.data.refresh) localStorage.setItem('refresh', res.data.refresh)
-      navigate('/')
+      navigate('/login')
     } catch (err) {
       console.error(err)
       alert('Registration failed')

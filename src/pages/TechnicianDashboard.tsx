@@ -1,4 +1,3 @@
-// src/pages/TechnicianDashboard.tsx
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTechnicianIssues, useAddTreatment, useAddItem } from '../api/hooks'
@@ -101,9 +100,8 @@ const useVehicleModel = (modelId: string | number) => {
   )
 }
 
-// Enhanced Issue Card Component with additional data
+// Enhanced Issue Card Component with additional data (unchanged)
 const IssueCard: React.FC<{ issue: any }> = ({ issue }) => {
-  // Fetch additional data for each issue
   const { data: vehicle, isLoading: vehicleLoading } = useVehicle(issue?.vehicle || '')
   const { data: customer, isLoading: customerLoading } = useCustomer(issue?.customer || '')
   const { data: vehicleModel, isLoading: modelLoading } = useVehicleModel(vehicle?.model || '')
@@ -116,30 +114,12 @@ const IssueCard: React.FC<{ issue: any }> = ({ issue }) => {
     })
   }
 
-  // Helper functions to safely access data
-  const getVehicleModel = () => {
-    return vehicleModel?.name || 'N/A'
-  }
-
-  const getVehicleColor = () => {
-    return vehicle?.color || 'N/A'
-  }
-
-  const getVehiclePlate = () => {
-    return vehicle?.plate_number || 'N/A'
-  }
-
-  const getCustomerName = () => {
-    return customer?.name || 'N/A'
-  }
-
-  const getCustomerEmail = () => {
-    return customer?.email || 'N/A'
-  }
-
-  const getCustomerPhone = () => {
-    return customer?.phone || 'N/A'
-  }
+  const getVehicleModel = () => vehicleModel?.name || 'N/A'
+  const getVehicleColor = () => vehicle?.color || 'N/A'
+  const getVehiclePlate = () => vehicle?.plate_number || 'N/A'
+  const getCustomerName = () => customer?.name || 'N/A'
+  const getCustomerEmail = () => customer?.email || 'N/A'
+  const getCustomerPhone = () => customer?.phone || 'N/A'
 
   const isLoading = vehicleLoading || customerLoading || modelLoading
 
@@ -289,7 +269,35 @@ export default function TechnicianDashboard() {
     full_name?: string; 
     registration_number?: string;
     email?: string;
+    photo?: string | null;
   } | null>(null)
+
+  // Helper to build image url similar to IssueDetail
+  const buildImageUrl = (photo: any) => {
+    if (!photo) return null
+    if (typeof photo === 'string' && (photo.startsWith('http://') || photo.startsWith('https://'))) {
+      return photo
+    }
+    if (typeof photo === 'object' && photo !== null && typeof photo.url === 'string') {
+      const u = photo.url
+      if (u.startsWith('http://') || u.startsWith('https://')) return u
+      if (u.startsWith('/')) {
+        const API_BASE = (import.meta.env.VITE_API_BASE as string) || 'http://localhost:8000'
+        return `${API_BASE}${u}`
+      }
+      const API_BASE = (import.meta.env.VITE_API_BASE as string) || 'http://localhost:8000'
+      return `${API_BASE}/media/${u}`
+    }
+    if (typeof photo === 'string') {
+      if (photo.startsWith('/')) {
+        const API_BASE = (import.meta.env.VITE_API_BASE as string) || 'http://localhost:8000'
+        return `${API_BASE}${photo}`
+      }
+      const API_BASE = (import.meta.env.VITE_API_BASE as string) || 'http://localhost:8000'
+      return `${API_BASE}/media/${photo}`
+    }
+    return null
+  }
 
   // fetch /auth/me/ to display name/reg (optional)
   useEffect(() => {
@@ -298,10 +306,12 @@ export default function TechnicianDashboard() {
       try {
         const res = await api.get('/auth/me/')
         if (!cancelled && res?.data) {
+          const tech = res.data?.technician || null
           setTechInfo({
-            full_name: res.data?.technician?.full_name || res.data.username,
-            registration_number: res.data?.technician?.registration_number || '',
-            email: res.data?.email || ''
+            full_name: tech?.full_name || res.data.username,
+            registration_number: tech?.registration_number || '',
+            email: res.data?.email || '',
+            photo: buildImageUrl(tech?.photo) // build URL if present
           })
         }
       } catch (e) {
@@ -331,8 +341,14 @@ export default function TechnicianDashboard() {
             
             {techInfo && (
               <div className="flex items-center gap-3 bg-blue-50 rounded-lg px-4 py-2">
-                <div className="p-1.5 bg-blue-100 rounded-md">
-                  <Icons.User />
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-white flex-shrink-0">
+                  {techInfo.photo ? (
+                    <img src={techInfo.photo} alt={techInfo.full_name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="p-1.5 bg-blue-100 rounded-md flex items-center justify-center h-full">
+                      <Icons.User />
+                    </div>
+                  )}
                 </div>
                 <div className="text-right">
                   <div className="font-medium text-gray-900">{techInfo.full_name}</div>
