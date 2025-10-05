@@ -1,0 +1,478 @@
+// src/pages/TechnicianDashboard.tsx
+import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { useTechnicianIssues, useAddTreatment, useAddItem } from '../api/hooks'
+import api from '../api/client'
+import { useQuery } from '@tanstack/react-query'
+
+// Icons for a professional automotive technician interface
+const Icons = {
+  User: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
+  Vehicle: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>,
+  Wrench: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
+  Calendar: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
+  ChevronLeft: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>,
+  ChevronRight: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>,
+  Loading: () => <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>,
+  Status: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+  Open: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>,
+  Email: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
+  Phone: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+}
+
+// Professional Card Component
+const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
+  <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${className}`}>
+    {children}
+  </div>
+)
+
+// Professional Button Component
+const Button: React.FC<{
+  children: React.ReactNode;
+  variant?: 'primary' | 'secondary' | 'outline';
+  loading?: boolean;
+  disabled?: boolean;
+  onClick?: () => void;
+  className?: string;
+}> = ({ children, variant = 'primary', loading = false, disabled = false, onClick, className = '' }) => {
+  const baseStyles = "px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2"
+  const variants = {
+    primary: "bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md disabled:bg-gray-300 disabled:text-gray-500",
+    secondary: "bg-green-600 hover:bg-green-700 text-white shadow-sm hover:shadow-md disabled:bg-gray-300 disabled:text-gray-500",
+    outline: "border border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 bg-white disabled:bg-gray-100 disabled:text-gray-400"
+  }
+
+  return (
+    <button
+      className={`${baseStyles} ${variants[variant]} ${className}`}
+      onClick={onClick}
+      disabled={disabled || loading}
+    >
+      {loading && <Icons.Loading />}
+      {children}
+    </button>
+  )
+}
+
+// Status Badge Component
+const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
+  const statusColors = {
+    open: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    'in progress': 'bg-blue-100 text-blue-800 border-blue-200',
+    completed: 'bg-green-100 text-green-800 border-green-200',
+    closed: 'bg-gray-100 text-gray-800 border-gray-200'
+  }
+
+  const color = statusColors[status.toLowerCase() as keyof typeof statusColors] || 'bg-gray-100 text-gray-800 border-gray-200'
+
+  return (
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${color}`}>
+      <Icons.Status />
+      <span className="ml-1 capitalize">{status}</span>
+    </span>
+  )
+}
+
+// Custom hook to fetch vehicle details
+const useVehicle = (vehicleId: string | number) => {
+  return useQuery(
+    ['vehicle', vehicleId],
+    () => api.get(`/vehicles/${vehicleId}/`).then(res => res.data),
+    { enabled: !!vehicleId }
+  )
+}
+
+// Custom hook to fetch customer details
+const useCustomer = (customerId: string | number) => {
+  return useQuery(
+    ['customer', customerId],
+    () => api.get(`/customers/${customerId}/`).then(res => res.data),
+    { enabled: !!customerId }
+  )
+}
+
+// Custom hook to fetch vehicle model details
+const useVehicleModel = (modelId: string | number) => {
+  return useQuery(
+    ['vehicle-model', modelId],
+    () => api.get(`/vehicle-models/${modelId}/`).then(res => res.data),
+    { enabled: !!modelId }
+  )
+}
+
+// Enhanced Issue Card Component with additional data
+const IssueCard: React.FC<{ issue: any }> = ({ issue }) => {
+  // Fetch additional data for each issue
+  const { data: vehicle, isLoading: vehicleLoading } = useVehicle(issue?.vehicle || '')
+  const { data: customer, isLoading: customerLoading } = useCustomer(issue?.customer || '')
+  const { data: vehicleModel, isLoading: modelLoading } = useVehicleModel(vehicle?.model || '')
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    })
+  }
+
+  // Helper functions to safely access data
+  const getVehicleModel = () => {
+    return vehicleModel?.name || 'N/A'
+  }
+
+  const getVehicleColor = () => {
+    return vehicle?.color || 'N/A'
+  }
+
+  const getVehiclePlate = () => {
+    return vehicle?.plate_number || 'N/A'
+  }
+
+  const getCustomerName = () => {
+    return customer?.name || 'N/A'
+  }
+
+  const getCustomerEmail = () => {
+    return customer?.email || 'N/A'
+  }
+
+  const getCustomerPhone = () => {
+    return customer?.phone || 'N/A'
+  }
+
+  const isLoading = vehicleLoading || customerLoading || modelLoading
+
+  if (isLoading) {
+    return <IssueCardSkeleton />
+  }
+
+  return (
+    <Card className="p-6 hover:shadow-md transition-shadow duration-200">
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+        <div className="flex-1">
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Icons.Vehicle />
+                Issue #{issue.id} - {getVehicleModel()}
+              </h3>
+              <div className="flex items-center gap-2 mt-1">
+                <StatusBadge status={issue.status} />
+                <span className="text-sm text-gray-500 flex items-center gap-1">
+                  <Icons.Calendar />
+                  {formatDate(issue.created_at)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-1">Vehicle & Customer Details</h4>
+              <div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <span className="font-medium">Plate:</span> {getVehiclePlate()}
+                  </div>
+                  <div>
+                    <span className="font-medium">Color:</span> {getVehicleColor()}
+                  </div>
+                  <div className="md:col-span-2">
+                    <span className="font-medium">Owner:</span> {getCustomerName()}
+                  </div>
+                  {getCustomerEmail() !== 'N/A' && (
+                    <div className="flex items-center gap-1">
+                      <Icons.Email className="w-3 h-3" />
+                      <span className="font-medium">Email:</span> {getCustomerEmail()}
+                    </div>
+                  )}
+                  {getCustomerPhone() !== 'N/A' && (
+                    <div className="flex items-center gap-1">
+                      <Icons.Phone className="w-3 h-3" />
+                      <span className="font-medium">Phone:</span> {getCustomerPhone()}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-1">Issue Description</h4>
+              <p className="text-gray-600 text-sm leading-relaxed bg-blue-50 rounded-lg p-3">
+                {issue.description || 'No description provided.'}
+              </p>
+            </div>
+
+            {issue.items && issue.items.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-1">Required Items ({issue.items.length})</h4>
+                <div className="flex flex-wrap gap-2">
+                  {issue.items.slice(0, 3).map((item: any, index: number) => (
+                    <span key={index} className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-orange-100 text-orange-800 border border-orange-200">
+                      {item.name}
+                    </span>
+                  ))}
+                  {issue.items.length > 3 && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-gray-100 text-gray-600 border border-gray-200">
+                      +{issue.items.length - 3} more
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 lg:items-end">
+          <Link 
+            to={`/issues/${issue.id}`}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
+          >
+            <Icons.Open />
+            Open Details
+          </Link>
+          
+          <div className="text-right">
+            <div className="text-xs text-gray-500 mb-1">Priority</div>
+            <div className={`px-2 py-1 rounded text-xs font-medium ${
+              issue.priority === 'high' ? 'bg-red-100 text-red-800' :
+              issue.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+              'bg-green-100 text-green-800'
+            }`}>
+              {issue.priority || 'normal'}
+            </div>
+          </div>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+// Loading Skeleton Component
+const IssueCardSkeleton: React.FC = () => (
+  <Card className="p-6 animate-pulse">
+    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+      <div className="flex-1 space-y-4">
+        <div className="flex items-start justify-between">
+          <div className="space-y-2">
+            <div className="h-5 bg-gray-200 rounded w-48"></div>
+            <div className="h-4 bg-gray-200 rounded w-32"></div>
+          </div>
+        </div>
+        <div className="space-y-3">
+          <div>
+            <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+            <div className="h-12 bg-gray-100 rounded"></div>
+          </div>
+          <div>
+            <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
+            <div className="h-16 bg-gray-100 rounded"></div>
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-col gap-3 lg:items-end">
+        <div className="h-9 bg-gray-200 rounded w-24"></div>
+        <div className="h-6 bg-gray-200 rounded w-16"></div>
+      </div>
+    </div>
+  </Card>
+)
+
+export default function TechnicianDashboard() {
+  const [page, setPage] = useState(1)
+  const { data, isLoading } = useTechnicianIssues(undefined, page)
+  const addTreatment = useAddTreatment()
+  const addItem = useAddItem()
+
+  const [techInfo, setTechInfo] = useState<{ 
+    full_name?: string; 
+    registration_number?: string;
+    email?: string;
+  } | null>(null)
+
+  // fetch /auth/me/ to display name/reg (optional)
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await api.get('/auth/me/')
+        if (!cancelled && res?.data) {
+          setTechInfo({
+            full_name: res.data?.technician?.full_name || res.data.username,
+            registration_number: res.data?.technician?.registration_number || '',
+            email: res.data?.email || ''
+          })
+        }
+      } catch (e) {
+        // ignore — maybe not authenticated
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
+
+  const totalPages = Math.ceil((data?.count || 0) / 10) // Assuming page size of 10
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-600 rounded-lg">
+                <Icons.Wrench className="text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Technician Portal</h1>
+                <p className="text-gray-600 text-sm">Automotive Repair & Maintenance</p>
+              </div>
+            </div>
+            
+            {techInfo && (
+              <div className="flex items-center gap-3 bg-blue-50 rounded-lg px-4 py-2">
+                <div className="p-1.5 bg-blue-100 rounded-md">
+                  <Icons.User />
+                </div>
+                <div className="text-right">
+                  <div className="font-medium text-gray-900">{techInfo.full_name}</div>
+                  <div className="text-sm text-gray-600">{techInfo.registration_number}</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <Icons.Vehicle />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">{data?.count || 0}</div>
+                <div className="text-sm text-gray-600">Total Assigned Issues</div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-yellow-100 rounded-lg">
+                <Icons.Status />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {data?.results?.filter((issue: any) => 
+                    ['open', 'in progress'].includes(issue.status?.toLowerCase())
+                  ).length || 0}
+                </div>
+                <div className="text-sm text-gray-600">Active Issues</div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-green-100 rounded-lg">
+                <Icons.Calendar />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {data?.results?.filter((issue: any) => 
+                    issue.status?.toLowerCase() === 'completed'
+                  ).length || 0}
+                </div>
+                <div className="text-sm text-gray-600">Completed Today</div>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Issues Section */}
+        <Card className="p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Your Assigned Issues</h2>
+              <p className="text-gray-600 text-sm mt-1">
+                Manage and track all repair jobs assigned to you
+              </p>
+            </div>
+            
+            {data && data.count > 0 && (
+              <div className="flex items-center gap-2 mt-4 sm:mt-0">
+                <span className="text-sm text-gray-600">
+                  Page {page} of {totalPages || 1}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Issues List */}
+          <div className="space-y-4">
+            {isLoading ? (
+              // Loading Skeletons
+              Array.from({ length: 3 }).map((_, index) => (
+                <IssueCardSkeleton key={index} />
+              ))
+            ) : data?.results?.length === 0 ? (
+              // Empty State
+              <div className="text-center py-12">
+                <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <Icons.Wrench className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Assigned Issues</h3>
+                <p className="text-gray-600 max-w-sm mx-auto">
+                  You don't have any repair issues assigned to you at the moment. 
+                  New assignments will appear here automatically.
+                </p>
+              </div>
+            ) : (
+              // Issues List
+              <>
+                {data?.results?.map((issue: any) => (
+                  <IssueCard key={issue.id} issue={issue} />
+                ))}
+
+                {/* Pagination */}
+                {data && data.count > 0 && (
+                  <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+                    <div className="text-sm text-gray-600">
+                      Showing {((page - 1) * 10) + 1} to {Math.min(page * 10, data.count)} of {data.count} issues
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                        className="px-3 py-2"
+                      >
+                        <Icons.ChevronLeft />
+                        Previous
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        onClick={() => setPage(p => p + 1)}
+                        disabled={!data.next}
+                        className="px-3 py-2"
+                      >
+                        Next
+                        <Icons.ChevronRight />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </Card>
+      </main>
+    </div>
+  )
+}
