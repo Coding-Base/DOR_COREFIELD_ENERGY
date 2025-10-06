@@ -1,6 +1,6 @@
 // src/pages/IssueDetail.tsx
-import React, { useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import Modal from '../components/Modal'
 import { useIssue } from '../api/hooks'
 import { useAddTreatment, useAddItem, useAddRecommendation, useChangeStatus } from '../api/hooks'
@@ -59,24 +59,24 @@ const Button: React.FC<{
 
 // Status Badge Component
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
-  const statusColors: Record<string, string> = {
+  const statusColors = {
     pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     fixing: 'bg-blue-100 text-blue-800 border-blue-200',
     completed: 'bg-green-100 text-green-800 border-green-200',
-    closed: 'bg-gray-100 text-gray-800 border-gray-200'
+    closed: 'bg_gray-100 text-gray-800 border-gray-200'
   }
 
-  const color = statusColors[status?.toLowerCase?.() || ''] || 'bg-gray-100 text-gray-800 border-gray-200'
+  const color = statusColors[status.toLowerCase() as keyof typeof statusColors] || 'bg-gray-100 text-gray-800 border-gray-200'
 
   return (
     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${color}`}>
-      {status ? (status.charAt(0).toUpperCase() + status.slice(1)) : 'Unknown'}
+      {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
   )
 }
 
 // Custom hook to fetch vehicle details
-const useVehicle = (vehicleId: string | number | undefined) => {
+const useVehicle = (vehicleId: string | number) => {
   return useQuery(
     ['vehicle', vehicleId],
     () => api.get(`/vehicles/${vehicleId}/`).then(res => res.data),
@@ -85,7 +85,7 @@ const useVehicle = (vehicleId: string | number | undefined) => {
 }
 
 // Custom hook to fetch customer details
-const useCustomer = (customerId: string | number | undefined) => {
+const useCustomer = (customerId: string | number) => {
   return useQuery(
     ['customer', customerId],
     () => api.get(`/customers/${customerId}/`).then(res => res.data),
@@ -94,7 +94,7 @@ const useCustomer = (customerId: string | number | undefined) => {
 }
 
 // Custom hook to fetch vehicle model details
-const useVehicleModel = (modelId: string | number | undefined) => {
+const useVehicleModel = (modelId: string | number) => {
   return useQuery(
     ['vehicle-model', modelId],
     () => api.get(`/vehicle-models/${modelId}/`).then(res => res.data),
@@ -104,15 +104,30 @@ const useVehicleModel = (modelId: string | number | undefined) => {
 
 export default function IssueDetail() {
   const { id } = useParams()
-  const { data: issue, isLoading: issueLoading } = useIssue(id || '')
+  const navigate = useNavigate()
+  const {
+    data: issue,
+    isLoading: issueLoading,
+    isError: issueIsError,
+    error: issueError
+  } = useIssue(id || '')
+
+  // if API returns 401 (unauthenticated) redirect to login preserving next
+  useEffect(() => {
+    if (!issueIsError || !issueError) return
+
+    // axios-style error may have response.status
+    const status = (issueError as any)?.response?.status || (issueError as any)?.status
+    if (status === 401) {
+      const next = window.location.pathname + window.location.search
+      navigate(`/login?next=${encodeURIComponent(next)}`, { replace: true })
+    }
+  }, [issueIsError, issueError, navigate])
 
   // Fetch additional data
-  const vehicleId = issue?.vehicle?.id || issue?.vehicle
-  const customerId = issue?.customer?.id || issue?.customer
-  const { data: vehicle, isLoading: vehicleLoading } = useVehicle(vehicleId)
-  const { data: customer, isLoading: customerLoading } = useCustomer(customerId)
-  const modelId = vehicle?.model || issue?.vehicle?.model || undefined
-  const { data: vehicleModel, isLoading: modelLoading } = useVehicleModel(modelId)
+  const { data: vehicle, isLoading: vehicleLoading } = useVehicle(issue?.vehicle || '')
+  const { data: customer, isLoading: customerLoading } = useCustomer(issue?.customer || '')
+  const { data: vehicleModel, isLoading: modelLoading } = useVehicleModel(vehicle?.model || '')
 
   const changeStatus = useChangeStatus()
   const addTreatment = useAddTreatment()
@@ -128,38 +143,6 @@ export default function IssueDetail() {
 
   const isLoading = issueLoading || vehicleLoading || customerLoading || modelLoading
 
-  // Normalize possible linked issue fields into an array of IDs
-  const resolveLinkedIds = (): number[] => {
-    if (!issue) return []
-    const possible = (issue.linked_issue ?? issue.linked_issues ?? issue.linked ?? null)
-    if (!possible) return []
-    if (Array.isArray(possible)) return possible.map((x: any) => Number(x)).filter(Boolean)
-    if (typeof possible === 'number') return [possible]
-    if (typeof possible === 'string') {
-      // maybe a single numeric string or comma-separated
-      if (possible.indexOf(',') !== -1) {
-        return possible.split(',').map(s => Number(s.trim())).filter(Boolean)
-      }
-      const n = Number(possible)
-      return Number.isFinite(n) ? [n] : []
-    }
-    return []
-  }
-
-  const linkedIds = resolveLinkedIds()
-
-  // Fetch linked issue summaries (single query that loads all linked ids)
-  const linkedIssuesQ = useQuery(
-    ['linked-issues', linkedIds.join(',')],
-    async () => {
-      if (linkedIds.length === 0) return []
-      const promises = linkedIds.map(id => api.get(`/issues/${id}/`).then(r => r.data))
-      const results = await Promise.all(promises)
-      return results
-    },
-    { enabled: linkedIds.length > 0 }
-  )
-
   if (isLoading) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="text-center">
@@ -173,7 +156,7 @@ export default function IssueDetail() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="text-center">
         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Icons.Vehicle />
+          <Icons.Vehicle className="w-8 h-8 text-red-600" />
         </div>
         <h2 className="text-xl font-semibold text-gray-900 mb-2">Issue Not Found</h2>
         <p className="text-gray-600">The requested issue could not be found.</p>
@@ -210,12 +193,12 @@ export default function IssueDetail() {
     return null
   }
 
-  const vehiclePhotoUrl = buildImageUrl(vehicle?.photo ?? issue?.vehicle?.photo)
+  const vehiclePhotoUrl = buildImageUrl(vehicle?.photo)
 
   const handleDownloadInvoice = async () => {
     try {
       if (!issue || !issue.invoices || issue.invoices.length === 0) {
-        alert('No invoice found for this issue')
+        alert('No invoice found for this issue');
         return
       }
       const invId = issue.invoices[0].id
@@ -233,8 +216,7 @@ export default function IssueDetail() {
     }
   }
 
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return '—'
+  const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -245,12 +227,29 @@ export default function IssueDetail() {
   }
 
   // Helper functions to safely access data
-  const getVehicleModel = () => vehicleModel?.name || issue?.vehicle?.model?.name || 'N/A'
-  const getVehicleColor = () => vehicle?.color || issue?.vehicle?.color || 'N/A'
-  const getVehiclePlate = () => vehicle?.plate_number || issue?.vehicle?.plate_number || 'N/A'
-  const getCustomerName = () => customer?.name || issue?.customer?.name || 'N/A'
-  const getCustomerEmail = () => customer?.email || issue?.customer?.email || 'N/A'
-  const getCustomerPhone = () => customer?.phone || issue?.customer?.phone || 'N/A'
+  const getVehicleModel = () => {
+    return vehicleModel?.name || 'N/A'
+  }
+
+  const getVehicleColor = () => {
+    return vehicle?.color || 'N/A'
+  }
+
+  const getVehiclePlate = () => {
+    return vehicle?.plate_number || 'N/A'
+  }
+
+  const getCustomerName = () => {
+    return customer?.name || 'N/A'
+  }
+
+  const getCustomerEmail = () => {
+    return customer?.email || 'N/A'
+  }
+
+  const getCustomerPhone = () => {
+    return customer?.phone || 'N/A'
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -260,7 +259,7 @@ export default function IssueDetail() {
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
             <div className="flex items-start gap-4">
               <div className="p-3 bg-blue-600 rounded-lg">
-                <Icons.Wrench />
+                <Icons.Wrench className="text-white" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Issue #{issue.id}</h1>
@@ -275,16 +274,36 @@ export default function IssueDetail() {
               </div>
             </div>
 
-            {issue.invoices?.length > 0 && (
+            <div className="flex items-center gap-3">
+              {/* Go back to Technician Dashboard button */}
               <Button
-                variant="secondary"
-                onClick={handleDownloadInvoice}
-                className="lg:self-start"
+                variant="outline"
+                onClick={() => navigate('/technician')}
+                className="hidden sm:inline-flex"
               >
-                <Icons.Download />
-                Download Invoice
+                ← Go back to Technician Dashboard
               </Button>
-            )}
+
+              {/* Mobile-friendly small back button */}
+              <button
+                onClick={() => navigate('/technician')}
+                className="inline-flex sm:hidden items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white hover:bg-gray-50"
+                aria-label="Go back to Technician Dashboard"
+              >
+                ← Dashboard
+              </button>
+
+              {issue.invoices?.length > 0 && (
+                <Button
+                  variant="secondary"
+                  onClick={handleDownloadInvoice}
+                  className="lg:self-start"
+                >
+                  <Icons.Download />
+                  Download Invoice
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -322,13 +341,13 @@ export default function IssueDetail() {
                         <div className="mt-2 space-y-1">
                           {getCustomerEmail() !== 'N/A' && (
                             <p className="text-sm text-gray-600 flex items-center gap-2">
-                              <Icons.Email />
+                              <Icons.Email className="w-4 h-4" />
                               {getCustomerEmail()}
                             </p>
                           )}
                           {getCustomerPhone() !== 'N/A' && (
                             <p className="text-sm text-gray-600 flex items-center gap-2">
-                              <Icons.Phone />
+                              <Icons.Phone className="w-4 h-4" />
                               {getCustomerPhone()}
                             </p>
                           )}
@@ -359,40 +378,6 @@ export default function IssueDetail() {
                         </div>
                       </div>
                     )}
-
-                    {/* Linked Issues */}
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Linked Issue(s)</label>
-                      <div className="mt-2">
-                        {linkedIds.length === 0 ? (
-                          <p className="text-sm text-gray-500">No linked issues</p>
-                        ) : linkedIssuesQ.isLoading ? (
-                          <div className="text-sm text-gray-500 flex items-center gap-2"><Icons.Loading /> Loading linked issues...</div>
-                        ) : (linkedIssuesQ.data && linkedIssuesQ.data.length > 0) ? (
-                          <div className="space-y-2">
-                            {linkedIssuesQ.data.map((li: any) => (
-                              <Link
-                                key={li.id}
-                                to={`/issues/${li.id}`}
-                                className="block p-3 bg-white border border-gray-100 rounded-lg hover:shadow-sm transition-shadow"
-                              >
-                                <div className="flex justify-between items-start gap-4">
-                                  <div className="flex-1">
-                                    <div className="font-medium text-gray-900">Issue #{li.id} - {li.vehicle?.model?.name || li.vehicle?.model || 'Model'}</div>
-                                    <div className="text-sm text-gray-600 mt-1">{(li.description || '').slice(0, 100)}{(li.description || '').length > 100 ? '…' : ''}</div>
-                                  </div>
-                                  <div className="text-xs text-gray-400 whitespace-nowrap ml-4">
-                                    {formatDate(li.created_at)}
-                                  </div>
-                                </div>
-                              </Link>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-500">Linked issue(s) not found</p>
-                        )}
-                      </div>
-                    </div>
                   </div>
                 </div>
 
@@ -418,8 +403,8 @@ export default function IssueDetail() {
                     </button>
                   ) : (
                     <div className="w-full h-32 flex flex-col items-center justify-center bg-gray-50 border border-gray-200 rounded-lg text-gray-500">
-                      <Icons.Photo />
-                      <span className="text-sm mt-2">No photo available</span>
+                      <Icons.Photo className="w-8 h-8 mb-2" />
+                      <span className="text-sm">No photo available</span>
                     </div>
                   )}
                 </div>
@@ -474,10 +459,10 @@ export default function IssueDetail() {
                   loading={addTreatment.isLoading}
                   onClick={() => {
                     if (!treatmentText.trim()) {
-                      alert('Please enter treatment description')
-                      return
+                      alert('Please enter treatment description');
+                      return;
                     }
-                    addTreatment.mutate({ issue: id, description: treatmentText })
+                    addTreatment.mutate({ issue: id, description: treatmentText });
                     setTreatmentText('')
                   }}
                   className="w-full mt-3"
@@ -510,11 +495,11 @@ export default function IssueDetail() {
                   loading={addItem.isLoading}
                   onClick={() => {
                     if (!itemName.trim() || !itemAmount.trim()) {
-                      alert('Please enter both item name and amount')
-                      return
+                      alert('Please enter both item name and amount');
+                      return;
                     }
-                    addItem.mutate({ issue: id, name: itemName, amount: itemAmount })
-                    setItemName('')
+                    addItem.mutate({ issue: id, name: itemName, amount: itemAmount });
+                    setItemName('');
                     setItemAmount('')
                   }}
                   className="w-full"
@@ -541,10 +526,10 @@ export default function IssueDetail() {
                   loading={addRec.isLoading}
                   onClick={() => {
                     if (!recText.trim()) {
-                      alert('Please enter recommendation text')
-                      return
+                      alert('Please enter recommendation text');
+                      return;
                     }
-                    addRec.mutate({ issue: id, text: recText })
+                    addRec.mutate({ issue: id, text: recText });
                     setRecText('')
                   }}
                   className="w-full mt-3"
@@ -661,3 +646,4 @@ export default function IssueDetail() {
     </div>
   )
 }
+

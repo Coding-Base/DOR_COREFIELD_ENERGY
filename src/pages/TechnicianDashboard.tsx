@@ -1,5 +1,6 @@
+// src/pages/TechnicianDashboard.tsx
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useTechnicianIssues, useAddTreatment, useAddItem } from '../api/hooks'
 import api from '../api/client'
 import { useQuery } from '@tanstack/react-query'
@@ -264,6 +265,7 @@ export default function TechnicianDashboard() {
   const { data, isLoading } = useTechnicianIssues(undefined, page)
   const addTreatment = useAddTreatment()
   const addItem = useAddItem()
+  const navigate = useNavigate()
 
   const [techInfo, setTechInfo] = useState<{ 
     full_name?: string; 
@@ -323,6 +325,44 @@ export default function TechnicianDashboard() {
 
   const totalPages = Math.ceil((data?.count || 0) / 10) // Assuming page size of 10
 
+  // Logout handler
+  const handleLogout = async () => {
+    try {
+      // try best-effort to get refresh token from localStorage
+      const refresh = localStorage.getItem('refresh') || localStorage.getItem('token') || localStorage.getItem('refresh_token')
+      if (refresh) {
+        try {
+          await api.post('/auth/logout/', { refresh })
+        } catch (e) {
+          // ignore errors from logout endpoint - still clear client state
+        }
+      }
+
+      // clear stored tokens & axios auth header
+      localStorage.removeItem('access')
+      localStorage.removeItem('refresh')
+      localStorage.removeItem('token')
+      localStorage.removeItem('refresh_token')
+      // clear axios default auth header if set
+      try {
+        if (api && (api as any).defaults && (api as any).defaults.headers) {
+          delete (api as any).defaults.headers.common['Authorization']
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      // clear local UI state if any
+      setTechInfo(null)
+      // redirect to login
+      navigate('/login')
+    } catch (err) {
+      // still redirect even on error
+      setTechInfo(null)
+      navigate('/login')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -339,23 +379,32 @@ export default function TechnicianDashboard() {
               </div>
             </div>
             
-            {techInfo && (
-              <div className="flex items-center gap-3 bg-blue-50 rounded-lg px-4 py-2">
-                <div className="w-12 h-12 rounded-full overflow-hidden bg-white flex-shrink-0">
-                  {techInfo.photo ? (
-                    <img src={techInfo.photo} alt={techInfo.full_name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="p-1.5 bg-blue-100 rounded-md flex items-center justify-center h-full">
-                      <Icons.User />
-                    </div>
-                  )}
+            <div className="flex items-center gap-3">
+              {techInfo && (
+                <div className="flex items-center gap-3 bg-blue-50 rounded-lg px-4 py-2">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-white flex-shrink-0">
+                    {techInfo.photo ? (
+                      <img src={techInfo.photo} alt={techInfo.full_name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="p-1.5 bg-blue-100 rounded-md flex items-center justify-center h-full">
+                        <Icons.User />
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <div className="font-medium text-gray-900">{techInfo.full_name}</div>
+                    <div className="text-sm text-gray-600">{techInfo.registration_number}</div>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <div className="font-medium text-gray-900">{techInfo.full_name}</div>
-                  <div className="text-sm text-gray-600">{techInfo.registration_number}</div>
-                </div>
+              )}
+
+              {/* Logout button */}
+              <div>
+                <Button variant="outline" onClick={handleLogout} className="ml-2">
+                  Logout
+                </Button>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </header>
