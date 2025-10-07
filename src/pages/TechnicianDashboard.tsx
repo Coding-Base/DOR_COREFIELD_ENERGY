@@ -1,9 +1,8 @@
 // src/pages/TechnicianDashboard.tsx
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useTechnicianIssues, useAddTreatment, useAddItem } from '../api/hooks'
-import api from '../api/client'
 import { useQuery } from '@tanstack/react-query'
+import api from '../api/client'
 
 // Icons for a professional automotive technician interface
 const Icons = {
@@ -58,8 +57,8 @@ const Button: React.FC<{
 // Status Badge Component
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   const statusColors = {
-    open: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    'in progress': 'bg-blue-100 text-blue-800 border-blue-200',
+    pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    fixing: 'bg-blue-100 text-blue-800 border-blue-200',
     completed: 'bg-green-100 text-green-800 border-green-200',
     closed: 'bg-gray-100 text-gray-800 border-gray-200'
   }
@@ -72,6 +71,22 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
       <span className="ml-1 capitalize">{status}</span>
     </span>
   )
+}
+
+// Custom hook to fetch technician's assigned issues
+const useTechnicianIssues = (registrationNumber: string | null, page: number = 1) => {
+  return useQuery({
+    queryKey: ['technician-issues', registrationNumber, page],
+    queryFn: async () => {
+      if (!registrationNumber) {
+        return { results: [], count: 0 }
+      }
+      const response = await api.get(`/issues/assigned_to_technician/?tech=${registrationNumber}&page=${page}`)
+      return response.data
+    },
+    enabled: !!registrationNumber,
+    keepPreviousData: true
+  })
 }
 
 // Custom hook to fetch vehicle details
@@ -92,7 +107,7 @@ const useCustomer = (customerId: string | number) => {
   )
 }
 
-// Custom hook to fetch vehicle model details
+// Custom hook to fetch vehicle model details - FIXED: Use model ID instead of object
 const useVehicleModel = (modelId: string | number) => {
   return useQuery(
     ['vehicle-model', modelId],
@@ -101,11 +116,12 @@ const useVehicleModel = (modelId: string | number) => {
   )
 }
 
-// Enhanced Issue Card Component with additional data (unchanged)
+// Enhanced Issue Card Component
 const IssueCard: React.FC<{ issue: any }> = ({ issue }) => {
   const { data: vehicle, isLoading: vehicleLoading } = useVehicle(issue?.vehicle || '')
   const { data: customer, isLoading: customerLoading } = useCustomer(issue?.customer || '')
-  const { data: vehicleModel, isLoading: modelLoading } = useVehicleModel(vehicle?.model || '')
+  // FIXED: Use vehicle?.model?.id instead of vehicle?.model
+  const { data: vehicleModel, isLoading: modelLoading } = useVehicleModel(vehicle?.model?.id || '')
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -116,7 +132,19 @@ const IssueCard: React.FC<{ issue: any }> = ({ issue }) => {
   }
 
   const getVehicleModel = () => vehicleModel?.name || 'N/A'
-  const getVehicleColor = () => vehicle?.color || 'N/A'
+  const getVehicleColor = () => {
+    try {
+      const color = vehicle?.color
+      if (!color) return 'N/A'
+      if (color.startsWith('{')) {
+        const parsed = JSON.parse(color)
+        return parsed.name || color
+      }
+      return color
+    } catch {
+      return vehicle?.color || 'N/A'
+    }
+  }
   const getVehiclePlate = () => vehicle?.plate_number || 'N/A'
   const getCustomerName = () => customer?.name || 'N/A'
   const getCustomerEmail = () => customer?.email || 'N/A'
@@ -262,9 +290,6 @@ const IssueCardSkeleton: React.FC = () => (
 
 export default function TechnicianDashboard() {
   const [page, setPage] = useState(1)
-  const { data, isLoading } = useTechnicianIssues(undefined, page)
-  const addTreatment = useAddTreatment()
-  const addItem = useAddItem()
   const navigate = useNavigate()
 
   const [techInfo, setTechInfo] = useState<{ 
@@ -274,7 +299,9 @@ export default function TechnicianDashboard() {
     photo?: string | null;
   } | null>(null)
 
-  // Helper to build image url similar to IssueDetail
+  const { data, isLoading } = useTechnicianIssues(techInfo?.registration_number || null, page)
+
+  // Helper to build image url
   const buildImageUrl = (photo: any) => {
     if (!photo) return null
     if (typeof photo === 'string' && (photo.startsWith('http://') || photo.startsWith('https://'))) {
@@ -301,7 +328,7 @@ export default function TechnicianDashboard() {
     return null
   }
 
-  // fetch /auth/me/ to display name/reg (optional)
+  // fetch /auth/me/ to get technician info
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -313,28 +340,27 @@ export default function TechnicianDashboard() {
             full_name: tech?.full_name || res.data.username,
             registration_number: tech?.registration_number || '',
             email: res.data?.email || '',
-            photo: buildImageUrl(tech?.photo) // build URL if present
+            photo: buildImageUrl(tech?.photo)
           })
         }
       } catch (e) {
-        // ignore — maybe not authenticated
+        console.error('Failed to fetch user info:', e)
       }
     })()
     return () => { cancelled = true }
   }, [])
 
-  const totalPages = Math.ceil((data?.count || 0) / 10) // Assuming page size of 10
+  const totalPages = Math.ceil((data?.count || 0) / 10)
 
   // Logout handler
   const handleLogout = async () => {
     try {
-      // try best-effort to get refresh token from localStorage
       const refresh = localStorage.getItem('refresh') || localStorage.getItem('token') || localStorage.getItem('refresh_token')
       if (refresh) {
         try {
           await api.post('/auth/logout/', { refresh })
         } catch (e) {
-          // ignore errors from logout endpoint - still clear client state
+          // ignore errors from logout endpoint
         }
       }
 
@@ -343,7 +369,7 @@ export default function TechnicianDashboard() {
       localStorage.removeItem('refresh')
       localStorage.removeItem('token')
       localStorage.removeItem('refresh_token')
-      // clear axios default auth header if set
+      
       try {
         if (api && (api as any).defaults && (api as any).defaults.headers) {
           delete (api as any).defaults.headers.common['Authorization']
@@ -352,12 +378,9 @@ export default function TechnicianDashboard() {
         // ignore
       }
 
-      // clear local UI state if any
       setTechInfo(null)
-      // redirect to login
       navigate('/login')
     } catch (err) {
-      // still redirect even on error
       setTechInfo(null)
       navigate('/login')
     }
@@ -398,12 +421,9 @@ export default function TechnicianDashboard() {
                 </div>
               )}
 
-              {/* Logout button */}
-              <div>
-                <Button variant="outline" onClick={handleLogout} className="ml-2">
-                  Logout
-                </Button>
-              </div>
+              <Button variant="outline" onClick={handleLogout} className="ml-2">
+                Logout
+              </Button>
             </div>
           </div>
         </div>
@@ -433,7 +453,7 @@ export default function TechnicianDashboard() {
               <div>
                 <div className="text-2xl font-bold text-gray-900">
                   {data?.results?.filter((issue: any) => 
-                    ['open', 'in progress'].includes(issue.status?.toLowerCase())
+                    ['pending', 'fixing'].includes(issue.status?.toLowerCase())
                   ).length || 0}
                 </div>
                 <div className="text-sm text-gray-600">Active Issues</div>
@@ -452,7 +472,7 @@ export default function TechnicianDashboard() {
                     issue.status?.toLowerCase() === 'completed'
                   ).length || 0}
                 </div>
-                <div className="text-sm text-gray-600">Completed Today</div>
+                <div className="text-sm text-gray-600">Completed Issues</div>
               </div>
             </div>
           </Card>
@@ -480,12 +500,10 @@ export default function TechnicianDashboard() {
           {/* Issues List */}
           <div className="space-y-4">
             {isLoading ? (
-              // Loading Skeletons
               Array.from({ length: 3 }).map((_, index) => (
                 <IssueCardSkeleton key={index} />
               ))
             ) : data?.results?.length === 0 ? (
-              // Empty State
               <div className="text-center py-12">
                 <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                   <Icons.Wrench className="w-8 h-8 text-gray-400" />
@@ -497,7 +515,6 @@ export default function TechnicianDashboard() {
                 </p>
               </div>
             ) : (
-              // Issues List
               <>
                 {data?.results?.map((issue: any) => (
                   <IssueCard key={issue.id} issue={issue} />

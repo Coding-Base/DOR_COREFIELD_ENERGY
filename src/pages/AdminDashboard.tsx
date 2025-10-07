@@ -1,8 +1,9 @@
 // src/pages/AdminDashboard.tsx
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Modal from '../components/Modal'
 import api from '../api/client'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   useCreateCustomer,
   useCreateVehicleModel,
@@ -15,7 +16,7 @@ import {
   useIssueById
 } from '../api/adminHooks'
 
-// Icons (you can replace with your preferred icon library)
+// ---------- Icons ----------
 const Icons = {
   Customer: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
   Vehicle: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>,
@@ -23,12 +24,13 @@ const Icons = {
   Invoice: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
   ChevronDown: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>,
   Loading: () => <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>,
-  Download: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+  Download: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
+  Plus: (props: any) => <svg {...props} className={`w-4 h-4 ${props.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>,
+  Menu: (props: any) => <svg {...props} className={`w-6 h-6 ${props.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16"/></svg>,
+  Calendar: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
 }
 
-/**
- * Accept either array or DRF paginated response
- */
+// ---------- Helpers ----------
 function unwrapList(data: any): any[] {
   if (!data) return []
   if (Array.isArray(data)) return data
@@ -36,14 +38,11 @@ function unwrapList(data: any): any[] {
   return []
 }
 
-// Professional Card Component
+// ---------- Small UI primitives ----------
 const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-  <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${className}`}>
-    {children}
-  </div>
+  <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${className}`}>{children}</div>
 )
 
-// Professional Button Component
 const Button: React.FC<{
   children: React.ReactNode;
   variant?: 'primary' | 'secondary' | 'outline';
@@ -51,31 +50,31 @@ const Button: React.FC<{
   disabled?: boolean;
   onClick?: () => void;
   className?: string;
-}> = ({ children, variant = 'primary', loading = false, disabled = false, onClick, className = '' }) => {
-  const baseStyles = "px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2"
-  const variants = {
+  size?: 'sm'|'md'|'lg';
+}> = ({ children, variant = 'primary', loading = false, disabled = false, onClick, className = '', size='md' }) => {
+  const baseStyles = "rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2"
+  const sizes: any = {
+    sm: "px-3 py-1.5 text-sm",
+    md: "px-4 py-2",
+    lg: "px-5 py-3 text-lg"
+  }
+  const variants: any = {
     primary: "bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md disabled:bg-gray-300 disabled:text-gray-500",
     secondary: "bg-green-600 hover:bg-green-700 text-white shadow-sm hover:shadow-md disabled:bg-gray-300 disabled:text-gray-500",
     outline: "border border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 bg-white disabled:bg-gray-100 disabled:text-gray-400"
   }
-
   return (
-    <button
-      className={`${baseStyles} ${variants[variant]} ${className}`}
-      onClick={onClick}
-      disabled={disabled || loading}
-    >
+    <button className={`${baseStyles} ${sizes[size]} ${variants[variant]} ${className}`} onClick={onClick} disabled={disabled || loading}>
       {loading && <Icons.Loading />}
       {children}
     </button>
   )
 }
 
-// Professional Input Component
 const Input: React.FC<{
   label?: string;
   value: string;
-  onChange: (value: string) => void;
+  onChange: (v: string) => void;
   placeholder?: string;
   type?: string;
   className?: string;
@@ -83,51 +82,220 @@ const Input: React.FC<{
 }> = ({ label, value, onChange, placeholder, type = 'text', className = '', required = false }) => (
   <div className={className}>
     {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}{required && <span className="text-red-500 ml-1">*</span>}</label>}
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-    />
+    <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
   </div>
 )
 
-// Professional Select Component
-const Select: React.FC<{
-  label?: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: Array<{ value: string; label: string }>;
-  placeholder?: string;
-  className?: string;
-  disabled?: boolean;
-  required?: boolean;
-}> = ({ label, value, onChange, options, placeholder, className = '', disabled = false, required = false }) => (
-  <div className={className}>
-    {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}{required && <span className="text-red-500 ml-1">*</span>}</label>}
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      disabled={disabled}
-      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
-    >
-      <option value="">{placeholder || 'Select an option'}</option>
-      {options.map(option => (
-        <option key={option.value} value={option.value}>{option.label}</option>
+// ---------- Toast system ----------
+type Toast = { id: string; type?: 'success' | 'error' | 'info'; title: string; message?: string }
+const useToasts = () => {
+  const [toasts, setToasts] = useState<Toast[]>([])
+  const push = (t: Omit<Toast, 'id'>) => {
+    const id = String(Date.now()) + Math.random().toString(36).slice(2, 7)
+    setToasts(s => [...s, { ...t, id }])
+    setTimeout(() => setToasts(s => s.filter(x => x.id !== id)), 6000)
+  }
+  const remove = (id: string) => setToasts(s => s.filter(x => x.id !== id))
+  const container = (
+    <div className="fixed right-6 bottom-6 z-50 flex flex-col gap-3">
+      {toasts.map(t => (
+        <div key={t.id} className={`max-w-sm w-full p-3 rounded-lg shadow-md ${t.type === 'error' ? 'bg-red-50 border border-red-200' : t.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-white border'}`}>
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <div className="font-semibold text-sm">{t.title}</div>
+              {t.message && <div className="text-xs text-gray-600 mt-1">{t.message}</div>}
+            </div>
+            <button className="text-xs text-gray-500" onClick={() => remove(t.id)}>Close</button>
+          </div>
+        </div>
       ))}
-    </select>
-  </div>
-)
+    </div>
+  )
+  return { push, container }
+}
 
+// ---------- Combobox (server-side) ----------
+type ComboboxOption = { id: string | number; label: string; meta?: any }
+const Combobox: React.FC<{
+  placeholder?: string;
+  fetcher: (params: { search: string; page: number }) => Promise<{ results: ComboboxOption[]; count?: number; next?: string | null }>;
+  onSelect: (item: ComboboxOption | null) => void;
+  valueLabel?: string;
+  selected?: ComboboxOption | null;
+  renderItem?: (it: ComboboxOption) => React.ReactNode;
+  className?: string;
+}> = ({ placeholder, fetcher, onSelect, selected = null, valueLabel, renderItem, className = '' }) => {
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const [items, setItems] = useState<ComboboxOption[]>([])
+  const [page, setPage] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
+  const timeoutRef = useRef<number | null>(null)
+  useEffect(() => {
+    setItems([])
+    setPage(1)
+    setHasMore(false)
+    const fetchPage = async (p = 1, s = search) => {
+      setLoading(true)
+      try {
+        const resp = await fetcher({ search: s, page: p })
+        setItems(prev => (p === 1 ? resp.results : [...prev, ...resp.results]))
+        setHasMore(Boolean(resp.next))
+      } catch (err) {
+        // ignore
+      } finally {
+        setLoading(false)
+      }
+    }
+    if (timeoutRef.current) window.clearTimeout(timeoutRef.current)
+    timeoutRef.current = window.setTimeout(() => fetchPage(1, search), 300)
+    return () => { if (timeoutRef.current) window.clearTimeout(timeoutRef.current) }
+  }, [search, fetcher])
+  const loadMore = async () => {
+    if (!hasMore) return
+    const nextPage = page + 1
+    setLoading(true)
+    try {
+      const resp = await fetcher({ search, page: nextPage })
+      setItems(prev => [...prev, ...resp.results])
+      setPage(nextPage)
+      setHasMore(Boolean(resp.next))
+    } catch (err) {
+      // ignore
+    } finally {
+      setLoading(false)
+    }
+  }
+  return (
+    <div className={`relative ${className}`}>
+      <div className="flex items-center gap-2">
+        <input
+          value={search}
+          onChange={e => { setSearch(e.target.value); setOpen(true) }}
+          onFocus={() => setOpen(true)}
+          placeholder={placeholder}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+        />
+        <button type="button" className="px-3 py-2 border border-gray-300 rounded-lg bg-white" onClick={() => { setOpen(o => !o) }}>
+          <Icons.ChevronDown />
+        </button>
+      </div>
+
+      {open && (
+        <div className="absolute z-30 mt-2 left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-auto">
+          {loading && items.length === 0 ? (
+            <div className="p-4 flex items-center gap-2"><Icons.Loading /><span>Loading...</span></div>
+          ) : items.length === 0 ? (
+            <div className="p-4 text-gray-600">No results</div>
+          ) : (
+            <>
+              {items.map(it => (
+                <button
+                  key={String(it.id)}
+                  onClick={() => { onSelect(it); setOpen(false); setSearch(it.label) }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-50 border-b last:border-b-0"
+                >
+                  {renderItem ? renderItem(it) : <div className="text-sm">{it.label}</div>}
+                </button>
+              ))}
+              {hasMore && (
+                <div className="p-3 text-center">
+                  <button onClick={loadMore} className="text-sm underline">Load more</button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+      {selected && valueLabel && (
+        <div className="mt-2 text-xs text-gray-600">Selected: <strong>{valueLabel}</strong></div>
+      )}
+    </div>
+  )
+}
+
+// ---------- Common colors & ColorPicker ----------
+const COMMON_COLORS = [
+  { name: 'Black', hex: '#000000' },
+  { name: 'White', hex: '#FFFFFF' },
+  { name: 'Silver', hex: '#C0C0C0' },
+  { name: 'Red', hex: '#FF0000' },
+  { name: 'Blue', hex: '#0000FF' },
+  { name: 'Green', hex: '#008000' },
+  { name: 'Gray', hex: '#808080' },
+  { name: 'Yellow', hex: '#FFFF00' },
+  { name: 'Orange', hex: '#FFA500' },
+  { name: 'Brown', hex: '#8B4513' },
+  { name: 'Navy', hex: '#000080' },
+  { name: 'Purple', hex: '#800080' }
+]
+
+const ColorPicker: React.FC<{
+  selectedColor: string;
+  selectedHex: string;
+  onColorChange: (name: string, hex: string) => void;
+}> = ({ selectedColor, selectedHex, onColorChange }) => {
+  const [selectedHexLocal, setSelectedHexLocal] = useState(selectedHex)
+  const [selectedNameLocal, setSelectedNameLocal] = useState(selectedColor)
+
+  useEffect(() => { setSelectedHexLocal(selectedHex) }, [selectedHex])
+  useEffect(() => { setSelectedNameLocal(selectedColor) }, [selectedColor])
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-4 gap-2">
+        {COMMON_COLORS.map(c => (
+          <button
+            key={c.name}
+            type="button"
+            onClick={() => { setSelectedNameLocal(c.name); setSelectedHexLocal(c.hex); onColorChange(c.name, c.hex) }}
+            className={`flex flex-col items-center gap-1 p-2 border rounded-lg transition-all duration-200 ${selectedNameLocal === c.name ? 'ring-2 ring-blue-500 border-blue-500' : 'border-gray-200 hover:border-gray-300'}`}
+          >
+            <span className="w-8 h-8 rounded border border-gray-300" style={{ background: c.hex }} />
+            <span className="text-xs text-gray-600">{c.name}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="pt-2 border-t">
+        <div className="grid grid-cols-2 gap-3">
+          <Input label="Custom Color Name" value={selectedNameLocal} onChange={(v) => { setSelectedNameLocal(v); onColorChange(v, selectedHexLocal) }} placeholder="Enter color name" />
+          <Input label="Custom Color Hex" value={selectedHexLocal} onChange={(v) => { setSelectedHexLocal(v); onColorChange(selectedNameLocal, v) }} placeholder="#123456" />
+        </div>
+        {selectedHexLocal && (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-sm text-gray-600">Preview:</span>
+            <div className="w-6 h-6 rounded border border-gray-300" style={{ background: selectedHexLocal }} />
+            <span className="text-sm font-medium">{selectedNameLocal}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ---------- Main component ----------
 export default function AdminDashboard(): JSX.Element {
   const qc = useQueryClient()
+  const navigate = useNavigate()
+  const { push: pushToast, container: ToastContainer } = useToasts()
 
-  const [tab, setTab] = useState<'customer' | 'vehicle' | 'issue' | 'invoice'>('customer')
-  const [open, setOpen] = useState(false)
-  const [downloading, setDownloading] = useState(false)
+  const [tab, setTab] = useState<'customers' | 'vehicles' | 'issues' | 'invoices'>('customers')
+  const [mobileOpen, setMobileOpen] = useState(false)
 
-  // --- mutations & queries from hooks ---
+  // Modal states
+  const [openCreateCustomer, setOpenCreateCustomer] = useState(false)
+  const [openAddVehicle, setOpenAddVehicle] = useState(false)
+  const [openCreateIssue, setOpenCreateIssue] = useState(false)
+  const [openIssueDetails, setOpenIssueDetails] = useState<{ open: boolean; issue?: any }>({ open: false })
+  const [openCreateInvoice, setOpenCreateInvoice] = useState(false)
+
+  // Admin info
+  const [adminInfo, setAdminInfo] = useState<any | null>(null)
+
+  // Hooks & lists
   const createCustomer = useCreateCustomer()
   const createModel = useCreateVehicleModel()
   const createVehicle = useCreateVehicle()
@@ -137,334 +305,407 @@ export default function AdminDashboard(): JSX.Element {
   const customersQ = useCustomersList()
   const modelsQ = useVehicleModelsList()
   const techsQ = useTechniciansList()
+  const technicians = unwrapList(techsQ.data)
 
-  // --- Customer form state ---
+  // Form states
   const [custName, setCustName] = useState('')
   const [custEmail, setCustEmail] = useState('')
   const [custPhone, setCustPhone] = useState('')
 
-  // --- Vehicle form state ---
-  const [ownerId, setOwnerId] = useState<string>('')
-  const [ownerDropdownOpen, setOwnerDropdownOpen] = useState(false)
-  const ownerWrapperRef = useRef<HTMLDivElement | null>(null)
-
-  const [modelName, setModelName] = useState('')
-  const [modelDropdownOpen, setModelDropdownOpen] = useState(false)
-  const [selectedModelId, setSelectedModelId] = useState<number | null>(null)
-  const modelWrapperRef = useRef<HTMLDivElement | null>(null)
-
+  // Add Vehicle states
+  const [selectedOwner, setSelectedOwner] = useState<{ id: string; label: string } | null>(null)
+  const [selectedBrand, setSelectedBrand] = useState<{ id: string; label: string } | null>(null)
+  const [brandCustom, setBrandCustom] = useState('')
+  const [modelsForBrand, setModelsForBrand] = useState<any[]>([]) // preloaded models for selected brand
+  const [modelForBrand, setModelForBrand] = useState<{ id: number; name: string } | null>(null)
+  const [modelCustom, setModelCustom] = useState('')
   const [plate, setPlate] = useState('')
-  const [color, setColor] = useState('')
+  const [colorName, setColorName] = useState('')
+  const [colorHex, setColorHex] = useState('')
   const [vehiclePhoto, setVehiclePhoto] = useState<File | null>(null)
 
-  // --- Issue form state ---
-  const [issueCustomerId, setIssueCustomerId] = useState<string>('')
-  const [issueVehicleId, setIssueVehicleId] = useState<string>('')
+  // Issue / Invoice states
+  const [issueCustomerSelected, setIssueCustomerSelected] = useState<{ id: string; label: string } | null>(null)
+  const [issueVehicleSelected, setIssueVehicleSelected] = useState<{ id: string; label: string } | null>(null)
+  const [issueTitle, setIssueTitle] = useState('')
   const [issueDesc, setIssueDesc] = useState('')
-  const [issueTechId, setIssueTechId] = useState<string>('')
-
-  // NEW: issue type, next due date, linked issues
+  const [issueTech, setIssueTech] = useState<string>('')
   const [issueType, setIssueType] = useState<'fixing' | 'upgrading' | 'servicing'>('fixing')
   const [nextDueDate, setNextDueDate] = useState<string>('')
-  const [linkedIssues, setLinkedIssues] = useState<number[]>([])
+  const [linkedIssues, setLinkedIssues] = useState<ComboboxOption[]>([])
 
-  // --- Invoice form state ---
-  const [invoiceIssueId, setInvoiceIssueId] = useState('')
-  const issuePreviewQ = useIssueById(invoiceIssueId)
+  const [invoiceUserSelected, setInvoiceUserSelected] = useState<{ id: string; label: string } | null>(null)
+  const [invoiceIssueSelected, setInvoiceIssueSelected] = useState<{ id: string; label: string; meta?: any } | null>(null)
   const [serviceCharge, setServiceCharge] = useState('')
+  const [isCreatingInvoice, setIsCreatingInvoice] = useState(false)
+  const [issueItemsTotal, setIssueItemsTotal] = useState<number>(0)
 
-  // normalized lists
-  const customers = unwrapList(customersQ.data)
-  const models = unwrapList(modelsQ.data)
-  const technicians = unwrapList(techsQ.data)
+  // Fetch admin info
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await api.get('/auth/me/')
+        if (!cancelled && res?.data) setAdminInfo(res.data)
+      } catch (err) { }
+    })()
+    return () => { cancelled = true }
+  }, [])
 
-  // -------------------------
-  // Vehicles-for-customer query (keyed by customer id)
-  // -------------------------
-  const fetchVehiclesFor = async (customerId?: string | null) => {
-    if (!customerId) return []
-    const resp = await api.get('/vehicles/', { params: { owner: customerId } })
-    return resp.data
+  // ---------- Fetchers for comboboxes ----------
+  const fetchCustomersCB = async ({ search = '', page = 1 }: { search: string; page: number }) => {
+    const resp = await api.get('/admin/customers/', { params: { search, page, page_size: 10 } })
+    const arr = resp.data.results || resp.data || []
+    const results = arr.map((c: any) => ({ id: c.id, label: `${c.name} (${c.phone || 'no phone'})`, meta: c }))
+    return { results, count: resp.data.count, next: resp.data.next }
   }
 
-  // vehicles for currently selected customer in Issue tab
-  const vehiclesForIssueCustomerQ = useQuery(
-    ['customer-vehicles', issueCustomerId || 'none'],
-    () => fetchVehiclesFor(issueCustomerId),
-    { enabled: !!issueCustomerId, staleTime: 0, cacheTime: 1000 * 60 * 5 }
-  )
-
-  const vehiclesForSelectedCustomer = unwrapList(vehiclesForIssueCustomerQ.data)
-
-  // -------------------------
-  // NEW: Issues-for-vehicle+customer query (used to populate linked issues)
-  // Only fetch when BOTH customer and vehicle are selected, so results are only previous issues
-  // created by the selected customer for that specific vehicle.
-  // -------------------------
-  const fetchIssuesForVehicleAndCustomer = async (vehicleId?: string | null, customerId?: string | null) => {
-    if (!vehicleId || !customerId) return []
-    const resp = await api.get('/issues/', { params: { vehicle: vehicleId, customer: customerId } })
-    return resp.data
+  const fetchVehiclesCB = async ({ search = '', page = 1 }: { search: string; page: number }) => {
+    const resp = await api.get('/admin/vehicles/', { params: { search, page, page_size: 10 } })
+    const arr = resp.data.results || resp.data || []
+    const results = arr.map((v: any) => ({ id: v.id, label: `${(v.model?.brand?.name) ? `${v.model.brand.name} ${v.model.name}` : (v.model?.name || 'Model')} - ${v.plate_number || 'NO-PLATE'} (Owner: ${v.owner?.name || '—'}#${v.owner?.id || '—'})`, meta: v }))
+    return { results, count: resp.data.count, next: resp.data.next }
   }
 
-  const vehicleIssuesQ = useQuery(
-    ['vehicle-issues', issueVehicleId || 'none', issueCustomerId || 'none'],
-    () => fetchIssuesForVehicleAndCustomer(issueVehicleId, issueCustomerId),
-    { enabled: !!issueVehicleId && !!issueCustomerId, staleTime: 0, cacheTime: 1000 * 60 * 5 }
-  )
+  const fetchIssuesCB = async ({ search = '', page = 1 }: { search: string; page: number }) => {
+    const resp = await api.get('/admin/issues/', { params: { search, page, page_size: 10, ordering: '-created_at' } })
+    const arr = resp.data.results || resp.data || []
+    const results = arr.map((it: any) => ({ id: it.id, label: `${it.title || '(no title)'} — #${it.id} (${it.customer?.name || it.customer?.phone || '—'})`, meta: it }))
+    return { results, count: resp.data.count, next: resp.data.next }
+  }
 
-  const vehicleIssues = unwrapList(vehicleIssuesQ.data)
+  const fetchInvoicesCB = async ({ search = '', page = 1 }: { search: string; page: number }) => {
+    const resp = await api.get('/admin/invoices/', { params: { search, page, page_size: 10, ordering: '-created_at' } })
+    const arr = resp.data.results || resp.data || []
+    const results = arr.map((inv: any) => ({ id: inv.id, label: `Invoice #${inv.id} — Issue #${inv.issue?.id} (${inv.issue?.customer?.name || inv.issue?.customer?.phone || '—'})`, meta: inv }))
+    return { results, count: resp.data.count, next: resp.data.next }
+  }
 
-  // -------------------------
-  // derived invoice totals
-  // -------------------------
-  const issueTotalItems = useMemo(() => {
-    const issue = issuePreviewQ.data
-    if (!issue) return 0
-    return (issue.items || []).reduce((s: number, it: any) => s + Number(it.amount || 0), 0)
-  }, [issuePreviewQ.data])
+  const fetchBrandsCB = async ({ search = '', page = 1 }: { search: string; page: number }) => {
+    const resp = await api.get('/brands/', { params: { search, page, page_size: 10 } })
+    const arr = resp.data.results || resp.data || []
+    const results = arr.map((b: any) => ({ id: b.id, label: b.name, meta: b }))
+    return { results, count: resp.data.count, next: resp.data.next }
+  }
 
-  const invoiceTotalPreview = useMemo(() => {
-    const svc = parseFloat(serviceCharge || '0') || 0
-    return issueTotalItems + svc
-  }, [issueTotalItems, serviceCharge])
-
-  // -------------------------
-  // PDF Download Helper Function - UPDATED
-  // -------------------------
-  const downloadInvoicePdf = async (invoiceId: string) => {
+  const fetchModelsByBrand = async (brandId: number | string | null) => {
+    if (!brandId) return []
     try {
-      setDownloading(true)
-      const response = await api.get(`/invoices/${invoiceId}/pdf/`, {
-        responseType: 'blob'
-      })
-
-      const blob = new Blob([response.data], { type: 'application/pdf' })
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `invoice-${invoiceId}.pdf`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
-    } catch (error) {
-      console.error('Error downloading PDF:', error)
-      alert('Invoice created but failed to download PDF. You can download it from the invoices list.')
-    } finally {
-      setDownloading(false)
+      const resp = await api.get('/vehicle-models/', { params: { brand: brandId, page_size: 50 } })
+      return resp.data.results || resp.data || []
+    } catch (err) {
+      return []
     }
   }
 
-  // -------------------------
-  // Handlers (unchanged from original)
-  // -------------------------
-  const handleCreateCustomer = async () => {
+  // Fetch vehicles for a customer (used on issue form)
+  const fetchVehiclesForCustomer = async ({ search = '', page = 1, owner }: { search: string; page: number; owner?: string | number }) => {
+    const params: any = { search, page, page_size: 10 }
+    if (owner) params.owner = owner
+    const resp = await api.get('/admin/vehicles/', { params })
+    const results = (resp.data.results || resp.data || []).map((v: any) => ({ id: v.id, label: `${(v.model?.brand?.name ? `${v.model.brand.name} ` : '')}${v.model?.name || 'Model'} - ${v.plate_number || 'NO-PLATE'}`, meta: v }))
+    return { results, count: resp.data.count, next: resp.data.next }
+  }
+
+  // issues without invoice for invoice-creation combobox
+  const fetchIssuesWithoutInvoiceCB = async ({ search = '', page = 1 }: { search: string; page: number }) => {
+    const resp = await api.get('/admin/issues/', { params: { search, page, page_size: 10, ordering: '-created_at', has_invoice: 'false' } })
+    const arr = resp.data.results || resp.data || []
+    const results = arr.map((it: any) => ({ id: it.id, label: `${it.title || '(no title)'} — #${it.id} (${it.customer?.name || it.customer?.phone || '—'})`, meta: it }))
+    return { results, count: resp.data.count, next: resp.data.next }
+  }
+
+  // ---------- Action handlers ----------
+  const handleOpenCreateCustomer = () => {
+    setCustName(''); setCustEmail(''); setCustPhone('')
+    setOpenCreateCustomer(true)
+  }
+
+  const handleSubmitCreateCustomer = async () => {
+    if (!custName.trim()) { pushToast({ type: 'error', title: 'Validation', message: 'Name required' }); return }
     try {
-      if (!custName) { alert('Please enter a name'); return }
       await createCustomer.mutateAsync({ name: custName, email: custEmail, phone: custPhone })
-      setCustName(''); setCustEmail(''); setCustPhone('')
       qc.invalidateQueries(['customers'])
-      alert('Customer created')
-    } catch (e: any) {
-      console.error(e)
-      alert('Failed to create customer: ' + (e?.response?.data ? JSON.stringify(e.response.data) : 'unknown error'))
+      pushToast({ type: 'success', title: 'Customer created', message: `${custName} added.` })
+      setOpenCreateCustomer(false)
+    } catch (err: any) {
+      pushToast({ type: 'error', title: 'Create failed', message: String(err?.response?.data || err?.message || err) })
     }
   }
 
-  const handlePickOwner = (id: number | string) => {
-    setOwnerId(String(id))
-    setOwnerDropdownOpen(false)
+  // ---------- Add Vehicle modal helpers & fixes ----------
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        if (selectedBrand && selectedBrand.id) {
+          const ms = await fetchModelsByBrand(selectedBrand.id)
+          if (!cancelled) setModelsForBrand(ms)
+        } else {
+          setModelsForBrand([])
+          setModelForBrand(null)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setModelsForBrand([])
+        }
+      }
+    })()
+    return () => { cancelled = true }
+  }, [selectedBrand])
+
+  const handleOpenAddVehicle = () => {
+    setSelectedOwner(null); setSelectedBrand(null); setBrandCustom(''); setModelsForBrand([]); setModelForBrand(null); setModelCustom('')
+    setPlate(''); setColorName(''); setColorHex(''); setVehiclePhoto(null)
+    setOpenAddVehicle(true)
   }
 
-  const handlePickModel = (m: any) => {
-    setModelName(m.name)
-    setSelectedModelId(m.id)
-    setModelDropdownOpen(false)
-  }
+  const handleSubmitAddVehicle = async () => {
+    if (!selectedOwner) { pushToast({ type: 'error', title: 'Validation', message: 'Please choose owner' }); return }
+    if (!selectedBrand && !brandCustom) { pushToast({ type: 'error', title: 'Validation', message: 'Please choose or enter a brand' }); return }
+    if (!modelForBrand && !modelCustom) { pushToast({ type: 'error', title: 'Validation', message: 'Please choose or enter a model' }); return }
 
-  const handleVehiclePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files ? e.target.files[0] : null
-    setVehiclePhoto(f)
-  }
+    let createdBrandId: number | null = null
+    let createdModelId: number | null = null
 
-  const handleAddVehicle = async () => {
     try {
-      if (!ownerId) { alert('Please select an owner'); return }
-      if (!modelName) { alert('Please pick or type a model'); return }
-      if (!plate) { alert('Please enter plate number'); return }
-
-      let modelIdToUse = selectedModelId
-      if (!modelIdToUse) {
-        const resp = await createModel.mutateAsync({ name: modelName })
-        const created = (resp && (resp as any).data) ? (resp as any).data : resp
-        modelIdToUse = created?.id
-        if (!modelIdToUse) { alert('Failed to create model'); return }
+      // create brand if needed
+      let brandId: number | string | null = selectedBrand ? selectedBrand.id : null
+      if (!brandId && brandCustom) {
+        const resp = await api.post('/brands/', { name: brandCustom })
+        brandId = resp.data.id
+        createdBrandId = brandId
+        setSelectedBrand({ id: String(brandId), label: brandCustom })
+        qc.invalidateQueries(['brands', 'fetchBrands'])
+        pushToast({ type: 'success', title: 'Brand Created', message: `New brand "${brandCustom}" created` })
       }
 
+      if (typeof brandId === 'string' && /^\d+$/.test(brandId)) brandId = parseInt(brandId, 10)
+
+      // create model if needed
+      let modelId: number | string | null = modelForBrand ? modelForBrand.id : null
+      if (!modelId && modelCustom) {
+        const resp = await api.post('/vehicle-models/', { name: modelCustom, brand_id: brandId })
+        modelId = resp.data.id
+        createdModelId = modelId
+        pushToast({ type: 'success', title: 'Model Created', message: `New model "${modelCustom}" created` })
+        const returnedModel = resp.data
+        setModelsForBrand(prev => [{ id: returnedModel.id, name: returnedModel.name, brand_id: returnedModel.brand || brandId }, ...prev])
+        qc.invalidateQueries(['vehicle-models', 'models'])
+      }
+
+      if (typeof modelId === 'string' && /^\d+$/.test(modelId)) modelId = parseInt(modelId, 10)
+
+      const colorPayload = colorName ? (colorHex ? { name: colorName, hex: colorHex } : { name: colorName }) : null
+
+      // send owner_id & model_id (backend expects these)
       if (vehiclePhoto) {
         const fd = new FormData()
-        fd.append('owner', String(ownerId))
-        fd.append('model_id', String(modelIdToUse))
-        fd.append('plate_number', plate)
-        fd.append('color', color)
+        fd.append('owner_id', String(selectedOwner.id))
+        fd.append('model_id', String(modelId))
+        if (plate) fd.append('plate_number', plate)
+        if (colorPayload) fd.append('color', JSON.stringify(colorPayload))
         fd.append('photo', vehiclePhoto)
         await createVehicle.mutateAsync(fd)
       } else {
         await createVehicle.mutateAsync({
-          owner: ownerId,
-          model_id: modelIdToUse,
-          plate_number: plate,
-          color
+          owner_id: selectedOwner.id,
+          model_id: modelId,
+          plate_number: plate || null,
+          color: colorPayload ? JSON.stringify(colorPayload) : null
         })
       }
 
-      qc.invalidateQueries(['customer-vehicles', ownerId])
       qc.invalidateQueries(['vehicles'])
-      qc.invalidateQueries(['customers'])
-      qc.invalidateQueries(['vehicle-models'])
+      pushToast({ type: 'success', title: 'Vehicle added', message: `Vehicle registered for ${selectedOwner.label}` })
+      setOpenAddVehicle(false)
+    } catch (err: any) {
+      const backendErr = err?.response?.data
+      if (backendErr) {
+        pushToast({ type: 'error', title: 'Add vehicle failed', message: JSON.stringify(backendErr) })
+      } else {
+        pushToast({ type: 'error', title: 'Add vehicle failed', message: String(err?.message || err) })
+      }
 
-      setPlate(''); setColor(''); setVehiclePhoto(null); setModelName(''); setSelectedModelId(null); setOwnerId('')
-      alert('Vehicle added')
-    } catch (e: any) {
-      console.error('Add vehicle error', e)
-      alert('Failed to add vehicle: ' + (e?.response?.data ? JSON.stringify(e.response.data) : 'unknown error'))
+      // cleanup created objects if any
+      try { if (createdModelId) await api.delete(`/vehicle-models/${createdModelId}/`).catch(()=>{}) } catch (_) {}
+      try { if (createdBrandId) await api.delete(`/brands/${createdBrandId}/`).catch(()=>{}) } catch (_) {}
     }
   }
 
-  const handleCreateIssue = async () => {
+  // ---------- Create Issue handlers ----------
+  const handleOpenCreateIssue = () => {
+    setIssueCustomerSelected(null)
+    setIssueVehicleSelected(null)
+    setIssueTitle('')
+    setIssueDesc('')
+    setIssueTech('')
+    setIssueType('fixing')
+    setNextDueDate('')
+    setLinkedIssues([])
+    setOpenCreateIssue(true)
+  }
+
+  const handleCreateIssueSubmit = async () => {
+    if (!issueCustomerSelected) { pushToast({ type: 'error', title: 'Validation', message: 'Please select customer' }); return }
+    if (!issueVehicleSelected) { pushToast({ type: 'error', title: 'Validation', message: 'Please select vehicle' }); return }
+    if (!issueTitle.trim()) { pushToast({ type: 'error', title: 'Validation', message: 'Issue title is required' }); return }
+    if (!issueTech) { pushToast({ type: 'error', title: 'Validation', message: 'Assign a technician' }); return }
     try {
-      if (!issueCustomerId) { alert('Please select a customer'); return }
-      if (!issueVehicleId) { alert('Please select a vehicle'); return }
-      if (!issueDesc || issueDesc.trim().length < 3) {
-        if (!confirm('Description is short — continue?')) return
-      }
-
       const payload: any = {
-        customer: issueCustomerId,
-        vehicle: issueVehicleId,
+        customer: issueCustomerSelected.id,
+        vehicle: issueVehicleSelected.id,
+        title: issueTitle,
         description: issueDesc,
-        issue_type: issueType
+        issue_type: issueType,
+        assigned_to_id: issueTech,
+        linked_issues: linkedIssues.map(l => l.id)
       }
-      if (issueTechId) {
-        payload.assigned_to = issueTechId
-        payload.assigned_to_id = issueTechId
-      }
-
-      if (issueType === 'servicing' && nextDueDate) {
-        payload.next_due_date = nextDueDate
-      }
-
-      if (linkedIssues && linkedIssues.length > 0) {
-        payload.linked_issues = linkedIssues
-      }
-
+      if (issueType === 'servicing' && nextDueDate) payload.next_due_date = nextDueDate
       await createIssue.mutateAsync(payload)
       qc.invalidateQueries(['issues'])
-      setIssueDesc(''); setIssueVehicleId(''); setIssueCustomerId(''); setIssueTechId('')
-      setIssueType('fixing'); setNextDueDate(''); setLinkedIssues([])
-      alert('Issue created')
-    } catch (e: any) {
-      console.error('Create issue error', e)
-      alert('Failed to create issue: ' + (e?.response?.data ? JSON.stringify(e.response.data) : 'unknown error'))
+      pushToast({ type: 'success', title: 'Issue created', message: `${issueTitle}` })
+      setOpenCreateIssue(false)
+    } catch (err: any) {
+      pushToast({ type: 'error', title: 'Create issue failed', message: String(err?.response?.data || err?.message || err) })
     }
   }
 
-  // UPDATED: Handle Create Invoice with proper PDF download
-  const handleCreateInvoice = async () => {
+  // ---------- Invoice helpers (FIXED: send issue_id and show total) ----------
+  const handleOpenCreateInvoice = () => {
+    setInvoiceUserSelected(null); setInvoiceIssueSelected(null); setServiceCharge(''); setIssueItemsTotal(0)
+    setOpenCreateInvoice(true)
+  }
+
+  useEffect(() => {
+    const load = async () => {
+      if (!invoiceIssueSelected) { setIssueItemsTotal(0); return }
+      try {
+        const resp = await api.get(`/issues/${invoiceIssueSelected.id}/`)
+        const issue = resp.data
+        const itemsTotal = (issue.items || []).reduce((s: number, it: any) => s + Number(it.amount || 0), 0)
+        setIssueItemsTotal(itemsTotal)
+      } catch (err) {
+        setIssueItemsTotal(0)
+      }
+    }
+    load()
+  }, [invoiceIssueSelected])
+
+  const handleCreateInvoiceSubmit = async () => {
+    if (!invoiceIssueSelected) { pushToast({ type: 'error', title: 'Validation', message: 'Please choose an issue' }); return }
     try {
-      if (!invoiceIssueId) { alert('Please enter/select an issue ID'); return }
+      setIsCreatingInvoice(true)
 
-      const response = await createInvoice.mutateAsync({
-        issue: invoiceIssueId,
-        service_charge: parseFloat(serviceCharge || '0') || 0
-      })
+      // parse and compute numbers
+      const issueIdNum = Number(invoiceIssueSelected.id)
+      const service = parseFloat(serviceCharge || '0') || 0
+      const totalAmount = Number((issueItemsTotal || 0) + service)
 
-      const invoiceId = (response && ((response as any).id || (response as any).data?.id))
-      if (!invoiceId) {
-        alert('Invoice created but could not determine invoice ID for download. Check invoices list.')
-        qc.invalidateQueries(['invoices'])
-        return
+      // IMPORTANT: backend expects issue_id (not issue)
+      const payload: any = {
+        issue_id: issueIdNum,
+        service_charge: service
       }
 
-      await downloadInvoicePdf(String(invoiceId))
+      // include total if your API supports it (safe to include; backend should ignore extra fields if not used)
+      payload.total = totalAmount
+
+      const resp = await createInvoice.mutateAsync(payload)
+      const invoiceId = resp?.id || resp?.data?.id
       qc.invalidateQueries(['invoices'])
-      setInvoiceIssueId(''); setServiceCharge('')
-      alert('Invoice created and downloaded successfully!')
-    } catch (e: any) {
-      console.error('Create invoice error', e)
-      alert('Failed to create invoice: ' + (e?.response?.data ? JSON.stringify(e.response.data) : 'unknown error'))
+      pushToast({ type: 'success', title: 'Invoice created', message: `Invoice #${invoiceId} created — Total: ${totalAmount.toFixed(2)}` })
+
+      // attempt PDF download
+      try {
+        const pdfResp = await api.get(`/invoices/${invoiceId}/pdf/`, { responseType: 'blob' })
+        const blob = new Blob([pdfResp.data], { type: 'application/pdf' })
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `invoice_${invoiceId}.pdf`
+        a.click()
+        window.URL.revokeObjectURL(url)
+      } catch (e) {
+        // ignore
+      }
+
+      setOpenCreateInvoice(false)
+    } catch (err: any) {
+      pushToast({ type: 'error', title: 'Create invoice failed', message: String(err?.response?.data || err?.message || err) })
+    } finally { setIsCreatingInvoice(false) }
+  }
+
+  const handleDownloadInvoicePdf = async (invoiceId: string | number) => {
+    try {
+      const resp = await api.get(`/invoices/${invoiceId}/pdf/`, { responseType: 'blob' })
+      const blob = new Blob([resp.data], { type: 'application/pdf' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `invoice_${invoiceId}.pdf`
+      a.click()
+      window.URL.revokeObjectURL(url)
+      pushToast({ type: 'success', title: 'Download started', message: `Invoice #${invoiceId}` })
+    } catch (err: any) {
+      pushToast({ type: 'error', title: 'Download failed', message: String(err?.message || err) })
     }
   }
 
-  // click outside logic for dropdowns
-  useEffect(() => {
-    const onDocClick = (ev: MouseEvent) => {
-      const target = ev.target as Node | null
-      if (ownerWrapperRef.current && ownerWrapperRef.current.contains(target)) return
-      if (modelWrapperRef.current && modelWrapperRef.current.contains(target)) return
-      setOwnerDropdownOpen(false)
-      setModelDropdownOpen(false)
-    }
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { setOwnerDropdownOpen(false); setModelDropdownOpen(false) }
-    }
-    document.addEventListener('click', onDocClick)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('click', onDocClick)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [])
-
-  // clear selected vehicle whenever customer changes
-  useEffect(() => {
-    setIssueVehicleId('')
-    setLinkedIssues([])
-  }, [issueCustomerId])
-
-  // clear linkedIssues when vehicle changes
-  useEffect(() => {
-    setLinkedIssues([])
-  }, [issueVehicleId])
-
-  // Navigation items
+  // ---------- UI pieces (kept same) ----------
   const navItems = [
-    { key: 'customer' as const, label: 'Create Customer', icon: Icons.Customer },
-    { key: 'vehicle' as const, label: 'Add Vehicle', icon: Icons.Vehicle },
-    { key: 'issue' as const, label: 'Create Issue', icon: Icons.Issue },
-    { key: 'invoice' as const, label: 'Create Invoice', icon: Icons.Invoice },
+    { key: 'customers' as const, label: 'Customers', icon: Icons.Customer },
+    { key: 'vehicles' as const, label: 'Vehicles', icon: Icons.Vehicle },
+    { key: 'issues' as const, label: 'Issues', icon: Icons.Issue },
+    { key: 'invoices' as const, label: 'Invoices', icon: Icons.Invoice },
   ]
 
-  // helper to toggle linked issue selection
-  const toggleLinkedIssue = (id: number) => {
-    setLinkedIssues(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  // preload vehicles for selected issue customer in the Create Issue modal:
+  const fetchVehiclesForSelectedCustomer = async ({ search = '', page = 1 }: { search: string; page: number }) => {
+    return await fetchVehiclesForCustomer({ search, page, owner: issueCustomerSelected ? issueCustomerSelected.id : undefined })
   }
+
+  // linked issues add helper
+  const addLinkedIssue = (it: ComboboxOption | null) => {
+    if (!it) return
+    if (linkedIssues.find(l => String(l.id) === String(it.id))) return
+    setLinkedIssues(prev => [...prev, it])
+  }
+  const removeLinkedIssue = (id: string | number) => setLinkedIssues(prev => prev.filter(x => String(x.id) !== String(id)))
+
+  // computed invoice totals for UI
+  const parsedService = parseFloat(serviceCharge || '0') || 0
+  const computedInvoiceTotal = (issueItemsTotal || 0) + parsedService
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Enhanced Sidebar */}
+      {/* Sidebar & main header UI */}
       <aside className="w-80 bg-gradient-to-b from-blue-900 to-blue-800 text-white p-6 flex flex-col">
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-2xl font-bold">AutoRepair Pro</h1>
           <p className="text-blue-200 text-sm mt-1">Admin Dashboard</p>
+        </div>
+
+        <div className="mb-6 p-3 bg-white/5 rounded-md">
+          {adminInfo ? (
+            <>
+              <div className="text-sm font-medium">{adminInfo.username || adminInfo.email || 'Admin'}</div>
+              <div className="text-xs text-blue-200">{adminInfo.email || ''}</div>
+              <div className="text-xs text-blue-300 mt-1">Role: {adminInfo.role || 'admin'}</div>
+            </>
+          ) : <div className="text-sm text-blue-200">Welcome, Admin</div>}
         </div>
 
         <nav className="flex-1">
           <h3 className="text-xs uppercase tracking-wider text-blue-300 font-semibold mb-4">Management</h3>
           <div className="space-y-2">
-            {navItems.map((item) => {
+            {navItems.map(item => {
               const Icon = item.icon
               return (
-                <button
-                  key={item.key}
-                  onClick={() => setTab(item.key)}
+                <button key={item.key} onClick={() => setTab(item.key)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                    tab === item.key
-                      ? 'bg-white text-blue-700 shadow-lg'
-                      : 'text-blue-100 hover:bg-blue-700 hover:text-white'
-                  }`}
-                >
+                    tab === item.key ? 'bg-white text-blue-700 shadow-lg' : 'text-blue-100 hover:bg-blue-700 hover:text-white'
+                  }`}>
                   <Icon />
                   <span className="font-medium">{item.label}</span>
                 </button>
@@ -473,454 +714,384 @@ export default function AdminDashboard(): JSX.Element {
           </div>
         </nav>
 
-        {/* Recent Customers Section */}
-        <div className="mt-8 pt-6 border-t border-blue-700">
-          <h4 className="text-sm font-semibold text-blue-200 mb-3">Recent Customers</h4>
-          <div className="space-y-2 max-h-48 overflow-auto">
-            {customers.length === 0 ? (
-              <div className="text-blue-300 text-sm">No customers yet</div>
-            ) : (
-              customers.slice(0, 6).map((c: any) => (
-                <div key={c.id} className="flex justify-between items-center text-sm p-2 rounded-lg bg-blue-700/30">
-                  <div>
-                    <div className="font-medium text-white">{c.name}</div>
-                    <div className="text-blue-200 text-xs">{c.phone || 'No phone'}</div>
-                  </div>
-                  <span className="text-xs bg-blue-600 px-2 py-1 rounded-full">ID: {c.id}</span>
-                </div>
-              ))
-            )}
-          </div>
+        <div className="mt-6">
+          <Button variant="outline" onClick={() => { localStorage.removeItem('access'); localStorage.removeItem('refresh'); delete (api as any).defaults.headers.common['Authorization']; navigate('/login') }}>
+            Logout
+          </Button>
         </div>
       </aside>
 
-      {/* Enhanced Main Content */}
       <main className="flex-1 p-8 overflow-auto">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {tab === 'customer' && 'Customer Management'}
-              {tab === 'vehicle' && 'Vehicle Registration'}
-              {tab === 'issue' && 'Issue Tracking'}
-              {tab === 'invoice' && 'Billing & Invoicing'}
-            </h1>
-            <p className="text-gray-600">
-              {tab === 'customer' && 'Add new customers to the system'}
-              {tab === 'vehicle' && 'Register vehicles for existing customers'}
-              {tab === 'issue' && 'Create and assign repair issues'}
-              {tab === 'invoice' && 'Generate invoices for completed work'}
-            </p>
+          <div className="mb-8 flex items-start justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                {tab === 'customers' && 'Customers'}
+                {tab === 'vehicles' && 'Vehicles'}
+                {tab === 'issues' && 'Issues'}
+                {tab === 'invoices' && 'Invoices'}
+              </h1>
+              <p className="text-gray-600">
+                {tab === 'customers' && 'Search and manage customers'}
+                {tab === 'vehicles' && 'Search and manage vehicles'}
+                {tab === 'issues' && 'Search, view and create issues'}
+                {tab === 'invoices' && 'Search and reprint invoices'}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-4">
+              {adminInfo ? (
+                <div className="text-right">
+                  <div className="font-medium text-gray-900">{adminInfo.username || adminInfo.email}</div>
+                  <div className="text-sm text-gray-600">{adminInfo.email || ''}</div>
+                </div>
+              ) : (
+                <div className="text-right">
+                  <div className="font-medium text-gray-900">Admin</div>
+                  <div className="text-sm text-gray-600">Administrator</div>
+                </div>
+              )}
+
+              {tab === 'customers' && <Button variant="primary" onClick={handleOpenCreateCustomer}>Create Customer</Button>}
+              {tab === 'vehicles' && <Button variant="primary" onClick={handleOpenAddVehicle}>Add Vehicle</Button>}
+              {tab === 'issues' && <Button variant="primary" onClick={handleOpenCreateIssue}>Create Issue</Button>}
+              {tab === 'invoices' && <Button variant="primary" onClick={handleOpenCreateInvoice}>Create Invoice</Button>}
+            </div>
           </div>
 
-          {/* Customer Tab */}
-          {tab === 'customer' && (
-            <Card className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">Create New Customer</h3>
-              <div className="space-y-4">
-                <Input
-                  label="Full Name"
-                  value={custName}
-                  onChange={setCustName}
-                  placeholder="Enter customer's full name"
-                  required
+          {/* Tab contents */}
+          <div>
+            {tab === 'customers' && (
+              <Card  className="p-6 min-h-[700px]">
+                <h3 className="text-lg font-semibold mb-4">Search Customers</h3>
+                <Combobox
+                  placeholder="Search by name, phone or email..."
+                  fetcher={({ search, page }) => fetchCustomersCB({ search, page })}
+                  onSelect={(it) => { if (it) pushToast({ type: 'info', title: 'Customer selected', message: it.label }) }}
+                  renderItem={(it) => <div className="flex justify-between"><div>{it.label}</div></div>}
                 />
-                <Input
-                  label="Email Address"
-                  value={custEmail}
-                  onChange={setCustEmail}
-                  placeholder="customer@example.com"
-                  type="email"
+                <div className="mt-6 text-sm text-gray-600">Tip: type name or phone to find a customer.</div>
+              </Card>
+            )}
+
+            {tab === 'vehicles' && (
+              <Card  className="p-6 min-h-[700px]">
+                <h3 className="text-lg font-semibold mb-4">Search Vehicles</h3>
+                <Combobox
+                  placeholder="Search by model, owner or plate..."
+                  fetcher={({ search, page }) => fetchVehiclesCB({ search, page })}
+                  onSelect={(it) => { if (it) pushToast({ type: 'info', title: 'Vehicle selected', message: String(it.label) }) }}
+                  renderItem={(it) => <div className="flex items-center gap-3"><div>{it.label}</div></div>}
                 />
-                <Input
-                  label="Phone Number"
-                  value={custPhone}
-                  onChange={setCustPhone}
-                  placeholder="+1 (555) 000-0000"
+                <div className="mt-6 text-sm text-gray-600">Tip: search by plate, owner name or model.</div>
+              </Card>
+            )}
+
+            {tab === 'issues' && (
+              <Card  className="p-6 min-h-[700px]">
+                <h3 className="text-lg font-semibold mb-4">Search Issues</h3>
+                <Combobox
+                  placeholder="Search by user name, phone or issue title..."
+                  fetcher={({ search, page }) => fetchIssuesCB({ search, page })}
+                  onSelect={(it) => { if (it) setOpenIssueDetails({ open: true, issue: it.meta }) }}
+                  renderItem={(it) => <div><div className="font-medium">{it.meta.title || '(no title)'} <span className="text-xs text-gray-500">#{it.id}</span></div><div className="text-xs text-gray-500">{it.meta.customer?.name} • {new Date(it.meta.created_at).toLocaleString()}</div></div>}
                 />
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    variant="primary"
-                    onClick={handleCreateCustomer}
-                    loading={createCustomer.isLoading}
-                    disabled={!custName}
-                  >
-                    Create Customer
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => { setCustName(''); setCustEmail(''); setCustPhone('') }}
-                  >
-                    Clear Form
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          )}
+                <div className="mt-6 text-sm text-gray-600">Tip: recent issues appear first.</div>
+              </Card>
+            )}
 
-          {/* Vehicle Tab */}
-          {tab === 'vehicle' && (
-            <Card className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">Register New Vehicle</h3>
-              <div className="space-y-5">
-                {/* Owner Selection */}
-                <div className="relative" ref={ownerWrapperRef}>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle Owner</label>
-                  <div className="relative">
-                    <input
-                      value={ownerId ? `${ownerId}` : ''}
-                      onFocus={() => setOwnerDropdownOpen(true)}
-                      placeholder="Select a customer"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer bg-white"
-                      readOnly
-                    />
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <Icons.ChevronDown />
-                    </div>
-                  </div>
-                  {ownerDropdownOpen && (
-                    <div className="absolute z-20 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 w-full max-h-64 overflow-auto">
-                      {customers.length === 0 ? (
-                        <div className="p-4 text-sm text-gray-500 text-center">No customers found</div>
-                      ) : (
-                        customers.map((c: any) => (
-                          <div
-                            key={c.id}
-                            onClick={() => handlePickOwner(c.id)}
-                            className="p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                          >
-                            <div className="font-medium text-gray-900">{c.name}</div>
-                            <div className="text-xs text-gray-500">{c.email} • {c.phone}</div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  )}
-                </div>
+            {tab === 'invoices' && (
+              <Card  className="p-6 min-h-[700px]">
+                <h3 className="text-lg font-semibold mb-4">Search Invoices</h3>
+                <Combobox
+                  placeholder="Search by invoice number, issue number or user name..."
+                  fetcher={({ search, page }) => fetchInvoicesCB({ search, page })}
+                  onSelect={(it) => { if (it) pushToast({ type: 'info', title: 'Invoice selected', message: it.label }) }}
+                  renderItem={(it) => <div className="flex justify-between items-center"><div>{it.label}</div><div><Button variant="outline" onClick={() => handleDownloadInvoicePdf(it.id)}>Reprint</Button></div></div>}
+                />
+                <div className="mt-6 text-sm text-gray-600">Tip: search by username or issue number to list invoices for that user.</div>
+              </Card>
+            )}
+          </div>
+        </div>
+      </main>
 
-                {/* Model Selection */}
-                <div className="relative" ref={modelWrapperRef}>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle Model</label>
-                  <div className="relative">
-                    <input
-                      value={modelName}
-                      onChange={e => { setModelName(e.target.value); setSelectedModelId(null) }}
-                      onFocus={() => setModelDropdownOpen(true)}
-                      placeholder="Type or select a model"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <Icons.ChevronDown />
-                    </div>
-                  </div>
-                  {modelDropdownOpen && (
-                    <div className="absolute z-20 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 w-full max-h-64 overflow-auto">
-                      {models.length === 0 ? (
-                        <div className="p-4 text-sm text-gray-500 text-center">No models found</div>
-                      ) : (
-                        models.map((m: any) => (
-                          <div
-                            key={m.id}
-                            onClick={() => handlePickModel(m)}
-                            className="p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                          >
-                            <div className="font-medium text-gray-900">{m.name}</div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  )}
-                </div>
+      {/* Modals */}
 
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    label="License Plate"
-                    value={plate}
-                    onChange={setPlate}
-                    placeholder="ABC 123"
-                    required
-                  />
-                  <Input
-                    label="Color"
-                    value={color}
-                    onChange={setColor}
-                    placeholder="e.g., Red, Blue, Black"
-                  />
-                </div>
+      {/* Create Customer Modal */}
+      <Modal open={openCreateCustomer} onClose={() => setOpenCreateCustomer(false)} title="Create Customer">
+        <div className="space-y-4">
+          <Input label="Full name" value={custName} onChange={setCustName} required />
+          <Input label="Email" value={custEmail} onChange={setCustEmail} type="email" />
+          <Input label="Phone" value={custPhone} onChange={setCustPhone} placeholder="+1 555 555 5555" />
+          <div className="flex gap-3 pt-3">
+            <Button variant="primary" onClick={handleSubmitCreateCustomer} loading={createCustomer.isLoading}>Create</Button>
+            <Button variant="outline" onClick={() => setOpenCreateCustomer(false)}>Cancel</Button>
+          </div>
+        </div>
+      </Modal>
 
+      {/* Add Vehicle Modal (keeps the updated behaviour) */}
+      <Modal open={openAddVehicle} onClose={() => setOpenAddVehicle(false)} title="Register New Vehicle" size="lg">
+        <div className="space-y-6 max-h-[70vh] overflow-auto pr-2">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle Owner</label>
+            <Combobox
+              placeholder="Search owner by name or phone..."
+              fetcher={({ search, page }) => fetchCustomersCB({ search, page })}
+              onSelect={(it) => setSelectedOwner(it ? { id: String(it.id), label: it.label } : null)}
+              renderItem={(it) => <div>{it.label} <div className="text-xs text-gray-500">ID: {it.id}</div></div>}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Brand</label>
+              <Combobox
+                placeholder="Select existing brand or type new..."
+                fetcher={({ search, page }) => fetchBrandsCB({ search, page })}
+                onSelect={(it) => {
+                  if (it) {
+                    setSelectedBrand({ id: String(it.id), label: it.label })
+                    setBrandCustom('')
+                  } else {
+                    setSelectedBrand(null)
+                    setModelsForBrand([])
+                  }
+                }}
+                renderItem={(it) => <div>{it.label}</div>}
+              />
+            </div>
+            <Input label="Custom Brand Name" value={brandCustom} onChange={(v) => { setBrandCustom(v); if (v) { setSelectedBrand(null); setModelsForBrand([]) } }} placeholder="Enter new brand name" />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Model</label>
+            {(selectedBrand && selectedBrand.id) || brandCustom ? (
+              <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle Photo</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors duration-200">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleVehiclePhotoChange}
-                      className="hidden"
-                      id="vehicle-photo"
-                    />
-                    <label htmlFor="vehicle-photo" className="cursor-pointer">
-                      {vehiclePhoto ? (
-                        <div className="text-green-600">
-                          <div className="font-medium">Selected: {vehiclePhoto.name}</div>
-                          <div className="text-sm text-gray-500">Click to change</div>
-                        </div>
-                      ) : (
-                        <div>
-                          <div className="font-medium text-gray-600">Click to upload photo</div>
-                          <div className="text-sm text-gray-500">PNG, JPG, JPEG up to 10MB</div>
-                        </div>
-                      )}
-                    </label>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    variant="primary"
-                    onClick={handleAddVehicle}
-                    loading={createVehicle.isLoading}
-                    disabled={!ownerId || !modelName || !plate}
-                  >
-                    Register Vehicle
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => { setModelName(''); setPlate(''); setColor(''); setVehiclePhoto(null); setOwnerId('') }}
-                  >
-                    Clear Form
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Issue Tab */}
-          {tab === 'issue' && (
-            <Card className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">Create Repair Issue</h3>
-              <div className="space-y-5">
-                <Select
-                  label="Customer"
-                  value={issueCustomerId}
-                  onChange={setIssueCustomerId}
-                  options={customers.map((c: any) => ({ value: c.id, label: `${c.name} (ID: ${c.id})` }))}
-                  placeholder="Select a customer"
-                  required
-                />
-
-                <Select
-                  label="Vehicle"
-                  value={issueVehicleId}
-                  onChange={val => { setIssueVehicleId(val); /* vehicleIssuesQ refetches automatically due to query key change */ }}
-                  options={vehiclesForSelectedCustomer.map((v: any) => ({
-                    value: v.id,
-                    label: `${v.model?.name || 'Unknown Model'} - ${v.plate_number} (ID: ${v.id})`
-                  }))}
-                  placeholder={!issueCustomerId ? 'Select a customer first' : (vehiclesForSelectedCustomer.length === 0 ? 'No vehicles for this customer' : 'Select vehicle')}
-                  disabled={!issueCustomerId || vehiclesForIssueCustomerQ.isLoading}
-                  required
-                />
-
-                {/* NEW: Issue Type */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Issue Type</label>
                   <select
-                    value={issueType}
-                    onChange={e => setIssueType(e.target.value as any)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 max-h-48 overflow-auto"
+                    value={String(modelForBrand?.id || '')}
+                    onChange={(e) => {
+                      const id = e.target.value
+                      if (!id) { setModelForBrand(null); return }
+                      const found = modelsForBrand.find((m: any) => String(m.id) === String(id))
+                      setModelForBrand(found || null)
+                    }}
+                    size={Math.min(8, Math.max(3, modelsForBrand.length))}
                   >
-                    <option value="fixing">Fixing</option>
-                    <option value="upgrading">Upgrading</option>
-                    <option value="servicing">Servicing</option>
+                    <option value="">Select existing model</option>
+                    {modelsForBrand.map((m: any) => (
+                      <option key={m.id} value={m.id}>{m.name}</option>
+                    ))}
                   </select>
                 </div>
 
-                {/* If servicing, show next due date */}
-                {issueType === 'servicing' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Next Due Date (for servicing)</label>
-                    <input
-                      type="date"
-                      value={nextDueDate}
-                      onChange={e => setNextDueDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    <div className="text-xs text-gray-500 mt-1">The next service date will be stored with the issue.</div>
-                  </div>
-                )}
+                <Input label="Custom Model Name" value={modelCustom} onChange={setModelCustom} placeholder="Enter new model name" />
+                <div className="text-xs text-gray-500">Tip: choose existing model or enter a new model name to create.</div>
+              </div>
+            ) : (
+              <div className="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg">
+                Please select or enter a brand first to choose models
+              </div>
+            )}
+          </div>
 
-                {/* Link Issues (previous issues for this vehicle AND customer) */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Linked Issue(s)</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input label="License plate (optional)" value={plate} onChange={setPlate} placeholder="ABC 123" />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+              <ColorPicker selectedColor={colorName} selectedHex={colorHex} onColorChange={(name, hex) => { setColorName(name); setColorHex(hex) }} />
+            </div>
+          </div>
 
-                  {(!issueCustomerId || !issueVehicleId) ? (
-                    <div className="text-sm text-gray-500">Select both customer and vehicle to see previous issues for that vehicle/customer.</div>
-                  ) : vehicleIssuesQ.isLoading ? (
-                    <div className="text-sm text-gray-500">Loading previous issues for this vehicle/customer...</div>
-                  ) : vehicleIssues.length === 0 ? (
-                    <div className="text-sm text-gray-500">No previous issues for this vehicle & customer combination.</div>
-                  ) : (
-                    <div className="space-y-2 max-h-44 overflow-auto border p-2 rounded">
-                      {vehicleIssues.map((vi: any) => (
-                        <label key={vi.id} className="flex items-start gap-2 cursor-pointer p-2 hover:bg-gray-50 rounded">
-                          <input
-                            type="checkbox"
-                            checked={linkedIssues.includes(vi.id)}
-                            onChange={() => toggleLinkedIssue(vi.id)}
-                          />
-                          <div>
-                            <div className="text-sm font-medium">#{vi.id} — {vi.description?.slice(0, 80) || '(no description)'}</div>
-                            <div className="text-xs text-gray-500">Status: {vi.status} • Created: {new Date(vi.created_at).toLocaleString()}</div>
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                  <div className="text-xs text-gray-500 mt-1">Select previous issues you want linked to this new issue. These will appear on the issue detail page as links.</div>
-                </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Photo</label>
+            <input type="file" accept="image/*" onChange={e => setVehiclePhoto(e.target.files ? e.target.files[0] : null)} className="w-full px-3 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+          </div>
 
-                <Select
-                  label="Assign Technician"
-                  value={issueTechId}
-                  onChange={setIssueTechId}
-                  options={technicians.map((t: any) => ({ value: t.id, label: `${t.full_name} (${t.registration_number})` }))}
-                  placeholder="Optional - assign technician"
+          <div className="flex gap-3 pt-4 border-t">
+            <Button variant="primary" onClick={handleSubmitAddVehicle} loading={createVehicle.isLoading} className="flex-1">Register Vehicle</Button>
+            <Button variant="outline" onClick={() => setOpenAddVehicle(false)}>Cancel</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Create Issue Modal (RESTORED) */}
+      <Modal open={openCreateIssue} onClose={() => setOpenCreateIssue(false)} title="Create Issue" size="lg">
+        <div className="space-y-4 max-h-[70vh] overflow-auto pr-2">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Customer</label>
+            <Combobox
+              placeholder="Search customer..."
+              fetcher={({ search, page }) => fetchCustomersCB({ search, page })}
+              onSelect={(it) => {
+                setIssueCustomerSelected(it ? { id: String(it.id), label: it.label } : null)
+                setIssueVehicleSelected(null)
+              }}
+              renderItem={(it) => <div className="flex justify-between"><div>{it.label}</div></div>}
+            />
+            {issueCustomerSelected && <div className="mt-2 text-xs text-gray-600">Selected: <strong>{issueCustomerSelected.label}</strong></div>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle</label>
+            <Combobox
+              placeholder={issueCustomerSelected ? "Search vehicles for selected customer..." : "Select customer first"}
+              fetcher={fetchVehiclesForSelectedCustomer}
+              onSelect={(it) => setIssueVehicleSelected(it ? { id: String(it.id), label: it.label } : null)}
+              renderItem={(it) => <div className="flex items-center gap-2"><div>{it.label}</div></div>}
+            />
+            {issueVehicleSelected && <div className="mt-2 text-xs text-gray-600">Selected: <strong>{issueVehicleSelected.label}</strong></div>}
+          </div>
+
+          <div>
+            <Input label="Title" value={issueTitle} onChange={setIssueTitle} required />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea value={issueDesc} onChange={(e)=>setIssueDesc(e.target.value)} rows={5} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Assign Technician</label>
+              <select value={issueTech || ''} onChange={(e)=>setIssueTech(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                <option value="">Select technician</option>
+                {technicians.map((t:any)=>(
+                  <option key={t.id} value={t.id}>{t.full_name || t.registration_number || t.email}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+              <select value={issueType} onChange={(e)=>setIssueType(e.target.value as any)} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                <option value="fixing">Fixing</option>
+                <option value="upgrading">Upgrading</option>
+                <option value="servicing">Servicing</option>
+              </select>
+            </div>
+
+            {issueType === 'servicing' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Next Due Date</label>
+                <input type="date" value={nextDueDate} onChange={(e)=>setNextDueDate(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Link Issues (optional)</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div>
+                <Combobox
+                  placeholder="Search existing issues..."
+                  fetcher={({ search, page }) => fetchIssuesCB({ search, page })}
+                  onSelect={(it) => addLinkedIssue(it)}
+                  renderItem={(it) => <div>{it.label}</div>}
                 />
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Issue Description</label>
-                  <textarea
-                    value={issueDesc}
-                    onChange={e => setIssueDesc(e.target.value)}
-                    placeholder="Describe the issue in detail..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-32 resize-none"
-                  />
-                  <div className="text-xs text-gray-500 mt-1">
-                    {issueDesc.length}/500 characters
-                  </div>
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    variant="primary"
-                    onClick={handleCreateIssue}
-                    loading={createIssue.isLoading}
-                    disabled={!issueCustomerId || !issueVehicleId || !issueDesc}
-                  >
-                    Create Issue
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => { setIssueCustomerId(''); setIssueVehicleId(''); setIssueDesc(''); setIssueTechId(''); setIssueType('fixing'); setNextDueDate(''); setLinkedIssues([]) }}
-                  >
-                    Clear Form
-                  </Button>
+              </div>
+              <div>
+                <div className="flex flex-wrap gap-2">
+                  {linkedIssues.map(li => (
+                    <div key={String(li.id)} className="inline-flex items-center gap-2 px-3 py-1 rounded bg-gray-100 border">
+                      <span className="text-xs">{li.label}</span>
+                      <button className="text-xs text-red-500" onClick={()=>removeLinkedIssue(li.id)}>x</button>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </Card>
-          )}
+            </div>
+          </div>
 
-          {/* Invoice Tab */}
-          {tab === 'invoice' && (
-            <Card className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">Generate Invoice</h3>
-              <div className="space-y-5">
-                <Input
-                  label="Issue ID"
-                  value={invoiceIssueId}
-                  onChange={setInvoiceIssueId}
-                  placeholder="Enter issue ID to preview details"
-                  required
-                />
+          <div className="flex gap-3 pt-3">
+            <Button variant="primary" onClick={handleCreateIssueSubmit} loading={createIssue.isLoading}>Create Issue</Button>
+            <Button variant="outline" onClick={()=>setOpenCreateIssue(false)}>Cancel</Button>
+          </div>
+        </div>
+      </Modal>
 
-                {issuePreviewQ.isLoading && (
-                  <div className="flex items-center justify-center py-8">
-                    <Icons.Loading />
-                    <span className="ml-2 text-gray-600">Loading issue details...</span>
-                  </div>
-                )}
+      {/* Issue Details Modal */}
+      <Modal open={openIssueDetails.open} onClose={() => setOpenIssueDetails({ open: false })} title={`Issue #${openIssueDetails.issue?.id || ''}`} size="lg">
+        <div className="space-y-4 max-h-[70vh] overflow-auto pr-2">
+          {openIssueDetails.issue ? (
+            <>
+              <div className="text-sm text-gray-600">Title: <strong>{openIssueDetails.issue.title}</strong></div>
+              <div className="text-sm text-gray-600">Status: <strong>{openIssueDetails.issue.status}</strong></div>
+              <div className="text-sm text-gray-600">Assigned to: <strong>{openIssueDetails.issue.assigned_to?.full_name || openIssueDetails.issue.assigned_to?.registration_number || '—'}</strong></div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-1">Description</h4>
+                <div className="text-sm text-gray-600 bg-gray-50 rounded p-3">{openIssueDetails.issue.description}</div>
+              </div>
 
-                {issuePreviewQ.data && (
-                  <Card className="p-4 bg-blue-50 border-blue-200">
-                    <h4 className="font-semibold text-blue-900 mb-3">Issue Preview</h4>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-600">Issue ID:</span>
-                        <div className="font-medium">#{issuePreviewQ.data.id}</div>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Vehicle:</span>
-                        <div className="font-medium">{issuePreviewQ.data.vehicle.model?.name} - {issuePreviewQ.data.vehicle.plate_number}</div>
-                      </div>
-                      <div className="col-span-2">
-                        <span className="text-gray-600">Description:</span>
-                        <div className="font-medium mt-1">{issuePreviewQ.data.description}</div>
-                      </div>
-                      <div className="col-span-2 border-t pt-3">
-                        <span className="text-gray-600">Items Total:</span>
-                        <div className="text-lg font-bold text-green-600">${issueTotalItems.toFixed(2)}</div>
-                      </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-1">Treatments</h4>
+                <div className="space-y-2">
+                  {(openIssueDetails.issue.treatments || []).map((t:any)=>(
+                    <div key={t.id} className="p-2 border rounded bg-white">
+                      <div className="text-xs text-gray-500">By: {t.technician?.full_name || '—'} • {new Date(t.created_at).toLocaleString()}</div>
+                      <div className="text-sm">{t.description}</div>
                     </div>
-                  </Card>
-                )}
-
-                <Input
-                  label="Service Charge ($)"
-                  value={serviceCharge}
-                  onChange={setServiceCharge}
-                  placeholder="0.00"
-                  type="number"
-                />
-
-                <Card className="p-4 bg-gray-50">
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-semibold text-gray-900">Invoice Total:</span>
-                    <span className="text-2xl font-bold text-green-600">${invoiceTotalPreview.toFixed(2)}</span>
-                  </div>
-                </Card>
-
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    variant="primary"
-                    onClick={handleCreateInvoice}
-                    loading={createInvoice.isLoading || downloading}
-                    disabled={!invoiceIssueId}
-                    className="min-w-[200px]"
-                  >
-                    {(createInvoice.isLoading || downloading) ? (
-                      <>
-                        <Icons.Loading />
-                        {createInvoice.isLoading ? 'Creating...' : 'Downloading...'}
-                      </>
-                    ) : (
-                      <>
-                        <Icons.Download />
-                        Generate & Download PDF
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => { setInvoiceIssueId(''); setServiceCharge('') }}
-                  >
-                    Clear Form
-                  </Button>
-                </div>
-
-                {/* Download Instructions */}
-                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-sm text-yellow-800">
-                    <strong>Note:</strong> After clicking "Generate & Download PDF", the invoice will be created and automatically downloaded as a PDF file.
-                    {downloading && " Download in progress..."}
-                  </p>
+                  ))}
+                  {(!openIssueDetails.issue.treatments || openIssueDetails.issue.treatments.length===0) && <div className="text-sm text-gray-500">No treatments yet.</div>}
                 </div>
               </div>
-            </Card>
+
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-1">Items</h4>
+                <div className="space-y-2">
+                  {(openIssueDetails.issue.items || []).map((it:any)=>(
+                    <div key={it.id} className="p-2 border rounded bg-white flex justify-between">
+                      <div className="text-sm">{it.name}</div>
+                      <div className="text-sm font-medium">{it.amount}</div>
+                    </div>
+                  ))}
+                  {(!openIssueDetails.issue.items || openIssueDetails.issue.items.length===0) && <div className="text-sm text-gray-500">No items yet.</div>}
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-3">
+                <Button variant="outline" onClick={()=>setOpenIssueDetails({ open:false })}>Close</Button>
+              </div>
+            </>
+          ) : (
+            <div className="text-center text-gray-600">No issue selected</div>
           )}
         </div>
+      </Modal>
 
-        <Modal open={open} onClose={() => setOpen(false)} title="Modal">Hello</Modal>
-      </main>
+      {/* Create Invoice Modal (FIXED) */}
+      <Modal open={openCreateInvoice} onClose={() => setOpenCreateInvoice(false)} title="Create Invoice">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Issue (without invoice)</label>
+            <Combobox
+              placeholder="Search issues without invoice..."
+              fetcher={({ search, page }) => fetchIssuesWithoutInvoiceCB({ search, page })}
+              onSelect={(it) => setInvoiceIssueSelected(it ? { id: it.id as any, label: it.label, meta: it.meta } : null)}
+              renderItem={(it) => <div>{it.label}</div>}
+            />
+            {invoiceIssueSelected && <div className="mt-2 text-xs text-gray-600">Selected: <strong>{invoiceIssueSelected.label}</strong></div>}
+          </div>
+
+          <div>
+            <Input label="Service charge" value={serviceCharge} onChange={setServiceCharge} placeholder="0.00" />
+            <div className="text-xs text-gray-500 mt-1">Items total: {issueItemsTotal.toFixed(2)}</div>
+            <div className="text-sm font-medium mt-2">Total (items + service): {computedInvoiceTotal.toFixed(2)}</div>
+          </div>
+
+          <div className="flex gap-3 pt-3">
+            <Button variant="primary" onClick={handleCreateInvoiceSubmit} loading={isCreatingInvoice}>Create Invoice</Button>
+            <Button variant="outline" onClick={()=>setOpenCreateInvoice(false)}>Cancel</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {ToastContainer}
     </div>
   )
 }
