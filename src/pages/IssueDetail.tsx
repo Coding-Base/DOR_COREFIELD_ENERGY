@@ -1,6 +1,6 @@
 // src/pages/IssueDetail.tsx
 import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../api/client'
 import Modal from '../components/Modal'
@@ -17,7 +17,8 @@ const Icons = {
   Loading: () => <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>,
   External: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>,
   Email: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
-  Phone: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+  Phone: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>,
+  ArrowLeft: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>,
 }
 
 // Professional Card Component
@@ -38,9 +39,9 @@ const Button: React.FC<{
 }> = ({ children, variant = 'primary', loading = false, disabled = false, onClick, className = '' }) => {
   const baseStyles = "px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2"
   const variants = {
-    primary: "bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md disabled:bg-gray-300 disabled:text-gray-500",
-    secondary: "bg-green-600 hover:bg-green-700 text-white shadow-sm hover:shadow-md disabled:bg-gray-300 disabled:text-gray-500",
-    outline: "border border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 bg-white disabled:bg-gray-100 disabled:text-gray-400"
+    primary: "bg-orange-500 hover:bg-orange-600 text-white shadow-sm hover:shadow-md disabled:bg-gray-300 disabled:text-gray-500",
+    secondary: "bg-orange-500 hover:bg-orange-600 text-white shadow-sm hover:shadow-md disabled:bg-gray-300 disabled:text-gray-500",
+    outline: "border border-orange-500 hover:border-orange-600 text-orange-500 hover:text-orange-600 bg-white disabled:bg-gray-100 disabled:text-gray-400"
   }
 
   return (
@@ -59,7 +60,7 @@ const Button: React.FC<{
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   const statusColors = {
     pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    fixing: 'bg-blue-100 text-blue-800 border-blue-200',
+    fixing: 'bg-orange-100 text-orange-800 border-orange-200',
     completed: 'bg-green-100 text-green-800 border-green-200',
     closed: 'bg-gray-100 text-gray-800 border-gray-200'
   }
@@ -161,7 +162,12 @@ const useAddRecommendation = () => {
 export default function IssueDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const queryClient = useQueryClient()
+
+  // read techId from query params (if present)
+  const searchParams = new URLSearchParams(location.search)
+  const techId = searchParams.get('techId')
 
   const {
     data: issue,
@@ -201,23 +207,32 @@ export default function IssueDetail() {
 
   const isLoading = issueLoading || vehicleLoading || customerLoading || modelLoading
 
+  // unified go-back handler that checks for techId param
+  const handleGoBack = () => {
+    if (techId) {
+      navigate(`/tech/${encodeURIComponent(techId)}`)
+    } else {
+      navigate('/login')
+    }
+  }
+
   if (isLoading) return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-orange-50 flex items-center justify-center">
       <div className="text-center">
         <Icons.Loading />
-        <p className="mt-2 text-gray-600">Loading issue details...</p>
+        <p className="mt-2 text-orange-700">Loading issue details...</p>
       </div>
     </div>
   )
 
   if (!issue) return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-orange-50 flex items-center justify-center">
       <div className="text-center">
         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <Icons.Vehicle />
         </div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Issue Not Found</h2>
-        <p className="text-gray-600">The requested issue could not be found.</p>
+        <h2 className="text-xl font-semibold text-orange-900 mb-2">Issue Not Found</h2>
+        <p className="text-orange-700">The requested issue could not be found.</p>
       </div>
     </div>
   )
@@ -318,21 +333,28 @@ export default function IssueDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-orange-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="bg-white shadow-sm border-b border-orange-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-blue-600 rounded-lg">
-                <Icons.Wrench />
+              <button
+                onClick={handleGoBack}
+                className="p-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors lg:hidden"
+                aria-label="Go back"
+              >
+                <Icons.ArrowLeft />
+              </button>
+              <div className="p-3 bg-orange-500 rounded-lg hidden lg:block">
+                <Icons.Wrench className="text-white" />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Issue #{issue.id}</h1>
-                <p className="text-gray-600 mt-1">Repair & Maintenance Details</p>
-                <div className="flex items-center gap-4 mt-3">
+              <div className="flex-1">
+                <h1 className="text-xl lg:text-2xl font-bold text-orange-900">Issue #{issue.id}</h1>
+                <p className="text-orange-700 mt-1 text-sm lg:text-base">Repair & Maintenance Details</p>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-3">
                   <StatusBadge status={issue.status} />
-                  <span className="text-sm text-gray-500 flex items-center gap-1">
+                  <span className="text-sm text-orange-600 flex items-center gap-1">
                     <Icons.Calendar />
                     Created {formatDate(issue.created_at)}
                   </span>
@@ -343,15 +365,15 @@ export default function IssueDetail() {
             <div className="flex items-center gap-3">
               <Button
                 variant="outline"
-                onClick={() => navigate('/technician')}
-                className="hidden sm:inline-flex"
+                onClick={handleGoBack}
+                className="hidden lg:inline-flex"
               >
                 ← Go back to Technician Dashboard
               </Button>
 
               <button
-                onClick={() => navigate('/technician')}
-                className="inline-flex sm:hidden items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white hover:bg-gray-50"
+                onClick={handleGoBack}
+                className="inline-flex lg:hidden items-center gap-2 px-3 py-2 border border-orange-200 rounded-lg text-sm text-orange-700 bg-white hover:bg-orange-50"
                 aria-label="Go back to Technician Dashboard"
               >
                 ← Dashboard
@@ -362,12 +384,12 @@ export default function IssueDetail() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Left Column - Issue Details & Actions */}
           <div className="lg:col-span-2 space-y-6">
             {/* Issue Overview Card */}
-            <Card className="p-6">
+            <Card className="p-4 lg:p-6">
               <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-1">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">Issue Overview</h2>
@@ -410,26 +432,26 @@ export default function IssueDetail() {
 
                     <div>
                       <label className="text-sm font-medium text-gray-700">Issue Description</label>
-                      <p className="mt-2 p-4 bg-gray-50 rounded-lg text-gray-700 leading-relaxed">
+                      <p className="mt-2 p-4 bg-orange-50 rounded-lg text-gray-700 leading-relaxed">
                         {issue.description || 'No description provided.'}
                       </p>
                     </div>
 
-                    {/* Linked Issues - NEW */}
+                    {/* Linked Issues */}
                     {issue.linked_issues && issue.linked_issues.length > 0 && (
                       <div>
                         <label className="text-sm font-medium text-gray-700">Linked Issues</label>
                         <div className="mt-2 space-y-2">
                           {issue.linked_issues.map((li: any) => (
-                            <div key={li.id} className="p-2 bg-gray-50 rounded border flex items-center justify-between">
+                            <div key={li.id} className="p-2 bg-orange-50 rounded border border-orange-200 flex items-center justify-between">
                               <div>
                                 <div className="text-sm font-medium">{li.title || `(Issue #${li.id})`}</div>
-                                <div className="text-xs text-gray-500">Status: {li.status || '—'}</div>
+                                <div className="text-xs text-orange-600">Status: {li.status || '—'}</div>
                               </div>
                               <div>
                                 <button
-                                  onClick={() => navigate(`/issues/${li.id}`)}
-                                  className="text-xs text-blue-600 underline"
+                                  onClick={() => navigate(`/issues/${li.id}${techId ? `?techId=${encodeURIComponent(techId)}` : ''}`)}
+                                  className="text-xs text-orange-600 underline"
                                 >
                                   Open
                                 </button>
@@ -444,11 +466,11 @@ export default function IssueDetail() {
                     {issue.assigned_to && (
                       <div>
                         <label className="text-sm font-medium text-gray-700">Assigned Technician</label>
-                        <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                        <div className="mt-2 p-3 bg-orange-50 rounded-lg border border-orange-100">
                           <p className="text-sm text-gray-700">
                             {issue.assigned_to.full_name || issue.assigned_to.registration_number}
                             {issue.assigned_to.registration_number && (
-                              <span className="text-gray-500 ml-2">
+                              <span className="text-orange-600 ml-2">
                                 ({issue.assigned_to.registration_number})
                               </span>
                             )}
@@ -468,19 +490,19 @@ export default function IssueDetail() {
                   {vehiclePhotoUrl ? (
                     <button
                       onClick={() => setImgModalOpen(true)}
-                      className="w-full block rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow duration-200"
+                      className="w-full block rounded-lg overflow-hidden border border-orange-200 hover:shadow-md transition-shadow duration-200"
                     >
                       <img
                         src={vehiclePhotoUrl}
                         alt={`Vehicle ${getVehiclePlate()}`}
                         className="w-full h-32 object-cover"
                       />
-                      <div className="p-2 bg-gray-50 text-xs text-gray-600 text-center">
+                      <div className="p-2 bg-orange-50 text-xs text-orange-600 text-center">
                         Click to preview
                       </div>
                     </button>
                   ) : (
-                    <div className="w-full h-32 flex flex-col items-center justify-center bg-gray-50 border border-gray-200 rounded-lg text-gray-500">
+                    <div className="w-full h-32 flex flex-col items-center justify-center bg-orange-50 border border-orange-200 rounded-lg text-orange-500">
                       <Icons.Photo />
                       <span className="text-sm">No photo available</span>
                     </div>
@@ -490,13 +512,13 @@ export default function IssueDetail() {
             </Card>
 
             {/* Status Update Card */}
-            <Card className="p-6">
+            <Card className="p-4 lg:p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Update Status</h3>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <select
                   value={status}
                   onChange={e => setStatus(e.target.value)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="flex-1 px-4 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 >
                   <option value="">Select new status...</option>
                   <option value="pending">Pending</option>
@@ -519,9 +541,9 @@ export default function IssueDetail() {
             </Card>
 
             {/* Quick Actions Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
               {/* Add Treatment */}
-              <Card className="p-6">
+              <Card className="p-4 lg:p-6">
                 <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Icons.Wrench />
                   Add Treatment
@@ -530,7 +552,7 @@ export default function IssueDetail() {
                   value={treatmentText}
                   onChange={e => setTreatmentText(e.target.value)}
                   placeholder="Describe the treatment performed..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-32 resize-none"
+                  className="w-full px-3 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 h-32 resize-none"
                 />
                 <Button
                   variant="primary"
@@ -551,7 +573,7 @@ export default function IssueDetail() {
               </Card>
 
               {/* Add Item (now with quantity) */}
-              <Card className="p-6">
+              <Card className="p-4 lg:p-6">
                 <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Icons.Plus />
                   Add Item
@@ -560,7 +582,7 @@ export default function IssueDetail() {
                   value={itemName}
                   onChange={e => setItemName(e.target.value)}
                   placeholder="Item name"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-3"
+                  className="w-full px-3 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 mb-3"
                 />
                 <input
                   value={itemAmount}
@@ -568,7 +590,7 @@ export default function IssueDetail() {
                   placeholder="Unit amount (e.g. 25.00)"
                   type="number"
                   step="0.01"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-3"
+                  className="w-full px-3 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 mb-3"
                 />
                 <input
                   value={itemQuantity}
@@ -576,7 +598,7 @@ export default function IssueDetail() {
                   placeholder="Quantity"
                   type="number"
                   min={1}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-3"
+                  className="w-full px-3 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 mb-3"
                 />
                 <Button
                   variant="primary"
@@ -590,7 +612,7 @@ export default function IssueDetail() {
               </Card>
 
               {/* Add Recommendation */}
-              <Card className="p-6">
+              <Card className="p-4 lg:p-6">
                 <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Icons.External />
                   Recommendation
@@ -599,7 +621,7 @@ export default function IssueDetail() {
                   value={recText}
                   onChange={e => setRecText(e.target.value)}
                   placeholder="Add recommendations for the customer..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-32 resize-none"
+                  className="w-full px-3 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 h-32 resize-none"
                 />
                 <Button
                   variant="outline"
@@ -624,17 +646,17 @@ export default function IssueDetail() {
           {/* Right Column - Activity & Details */}
           <div className="space-y-6">
             {/* Treatments */}
-            <Card className="p-6">
+            <Card className="p-4 lg:p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Treatments ({issue.treatments?.length || 0})</h3>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {!issue.treatments || issue.treatments.length === 0 ? (
                   <p className="text-gray-500 text-sm text-center py-4">No treatments recorded yet</p>
                 ) : (
                   issue.treatments.map((t: any) => (
-                    <div key={t.id} className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                    <div key={t.id} className="p-3 bg-orange-50 rounded-lg border border-orange-100">
                       <p className="text-sm text-gray-700">{t.description}</p>
                       {t.created_at && (
-                        <p className="text-xs text-gray-500 mt-2">
+                        <p className="text-xs text-orange-600 mt-2">
                           {formatDate(t.created_at)}
                         </p>
                       )}
@@ -645,7 +667,7 @@ export default function IssueDetail() {
             </Card>
 
             {/* Items */}
-            <Card className="p-6">
+            <Card className="p-4 lg:p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Parts & Items ({issue.items?.length || 0})</h3>
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {!issue.items || issue.items.length === 0 ? (
@@ -670,7 +692,7 @@ export default function IssueDetail() {
             </Card>
 
             {/* Recommendations */}
-            <Card className="p-6">
+            <Card className="p-4 lg:p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Recommendations ({issue.recommendations?.length || 0})</h3>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {!issue.recommendations || issue.recommendations.length === 0 ? (
@@ -680,7 +702,7 @@ export default function IssueDetail() {
                     <div key={r.id} className="p-3 bg-yellow-50 rounded-lg border border-yellow-100">
                       <p className="text-sm text-gray-700">{r.text}</p>
                       {r.created_at && (
-                        <p className="text-xs text-gray-500 mt-2">
+                        <p className="text-xs text-yellow-600 mt-2">
                           {formatDate(r.created_at)}
                         </p>
                       )}
@@ -703,12 +725,12 @@ export default function IssueDetail() {
                 alt={`Vehicle ${getVehiclePlate()}`}
                 className="max-h-[60vh] max-w-full object-contain rounded-lg"
               />
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3 w-full">
                 <a
                   href={vehiclePhotoUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
                 >
                   <Icons.External />
                   Open in New Tab
@@ -716,7 +738,7 @@ export default function IssueDetail() {
                 <a
                   href={vehiclePhotoUrl}
                   download={`vehicle_${getVehiclePlate()}`}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
                 >
                   <Icons.Download />
                   Download
@@ -734,3 +756,5 @@ export default function IssueDetail() {
     </div>
   )
 }
+
+

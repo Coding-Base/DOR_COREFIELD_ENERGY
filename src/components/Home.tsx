@@ -561,7 +561,7 @@ export default function Home() {
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-xl overflow-hidden border border-orange-500">
                     <img 
-                      src="https://instagram.fabb1-1.fna.fbcdn.net/v/t51.2885-19/457854020_1242273323828499_6212613032888073770_n.jpg?stp=dst-jpg_s320x320_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby41MDAuYzIifQ&_nc_ht=instagram.fabb1-1.fna.fbcdn.net&_nc_cat=103&_nc_oc=Q6cZ2QFBjjLOM6me3mdAgN3su18LL_uFf0nV9MTkXwB9h5LicPndjuAUzMJyLrthuF60zNaO7r4P_GaFYi-MU2FINuAd&_nc_ohc=Yj97npUFIyMQ7kNvwEYZoFw&_nc_gid=s-hX3HZidXXvBe2xsHyqZw&edm=AOQ1c0wBAAAA&ccb=7-5&oh=00_AfdJoCQjj5Fmv91CpSOlMF-rOSoWu2C07yQBE2w4NQg0sA&oe=68EBFD18&_nc_sid=8b3546" 
+                      src={image}
                       alt="RK AUTOS Logo"
                       className="w-full h-full object-cover"
                     />

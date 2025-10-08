@@ -35,11 +35,11 @@ export default function AdminRegister() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
+          <div className="mx-auto w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
             <Icons.Shield className="text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Portal</h1>
@@ -59,7 +59,7 @@ export default function AdminRegister() {
                 onChange={e => setUsername(e.target.value)} 
                 placeholder="Username" 
                 required
-                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-gray-50 transition-colors"
+                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50 transition-colors"
               />
             </div>
 
@@ -74,7 +74,7 @@ export default function AdminRegister() {
                 placeholder="Email address" 
                 type="email"
                 required
-                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-gray-50 transition-colors"
+                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50 transition-colors"
               />
             </div>
 
@@ -89,7 +89,7 @@ export default function AdminRegister() {
                 placeholder="Password" 
                 type="password" 
                 required
-                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-gray-50 transition-colors"
+                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50 transition-colors"
               />
             </div>
 
@@ -97,7 +97,7 @@ export default function AdminRegister() {
             <button 
               type="submit" 
               disabled={isLoading}
-              className="w-full bg-purple-600 text-white py-4 px-4 rounded-xl font-medium hover:bg-purple-700 focus:ring-4 focus:ring-purple-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25"
+              className="w-full bg-orange-500 text-white py-4 px-4 rounded-xl font-medium hover:bg-orange-600 focus:ring-4 focus:ring-orange-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/25"
             >
               {isLoading ? (
                 <>
@@ -117,7 +117,7 @@ export default function AdminRegister() {
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Already have an account?{' '}
-              <Link to="/login" className="text-purple-600 font-medium hover:text-purple-700">
+              <Link to="/login" className="text-orange-500 font-medium hover:text-orange-600">
                 Sign in here
               </Link>
             </p>

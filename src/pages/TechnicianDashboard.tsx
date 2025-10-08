@@ -16,7 +16,9 @@ const Icons = {
   Status: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
   Open: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>,
   Email: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
-  Phone: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+  Phone: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>,
+  Menu: (props: any) => <svg {...props} className={`w-6 h-6 ${props.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16"/></svg>,
+  Close: (props: any) => <svg {...props} className={`w-6 h-6 ${props.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>,
 }
 
 // Professional Card Component
@@ -37,9 +39,9 @@ const Button: React.FC<{
 }> = ({ children, variant = 'primary', loading = false, disabled = false, onClick, className = '' }) => {
   const baseStyles = "px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2"
   const variants = {
-    primary: "bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md disabled:bg-gray-300 disabled:text-gray-500",
-    secondary: "bg-green-600 hover:bg-green-700 text-white shadow-sm hover:shadow-md disabled:bg-gray-300 disabled:text-gray-500",
-    outline: "border border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 bg-white disabled:bg-gray-100 disabled:text-gray-400"
+    primary: "bg-orange-500 hover:bg-orange-600 text-white shadow-sm hover:shadow-md disabled:bg-gray-300 disabled:text-gray-500",
+    secondary: "bg-orange-500 hover:bg-orange-600 text-white shadow-sm hover:shadow-md disabled:bg-gray-300 disabled:text-gray-500",
+    outline: "border border-orange-500 hover:border-orange-600 text-orange-500 hover:text-orange-600 bg-white disabled:bg-gray-100 disabled:text-gray-400"
   }
 
   return (
@@ -58,7 +60,7 @@ const Button: React.FC<{
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   const statusColors = {
     pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    fixing: 'bg-blue-100 text-blue-800 border-blue-200',
+    fixing: 'bg-orange-100 text-orange-800 border-orange-200',
     completed: 'bg-green-100 text-green-800 border-green-200',
     closed: 'bg-gray-100 text-gray-800 border-gray-200'
   }
@@ -117,7 +119,7 @@ const useVehicleModel = (modelId: string | number) => {
 }
 
 // Enhanced Issue Card Component
-const IssueCard: React.FC<{ issue: any }> = ({ issue }) => {
+const IssueCard: React.FC<{ issue: any; techId?: string | number }> = ({ issue, techId }) => {
   const { data: vehicle, isLoading: vehicleLoading } = useVehicle(issue?.vehicle || '')
   const { data: customer, isLoading: customerLoading } = useCustomer(issue?.customer || '')
   // FIXED: Use vehicle?.model?.id instead of vehicle?.model
@@ -208,7 +210,7 @@ const IssueCard: React.FC<{ issue: any }> = ({ issue }) => {
 
             <div>
               <h4 className="text-sm font-medium text-gray-700 mb-1">Issue Description</h4>
-              <p className="text-gray-600 text-sm leading-relaxed bg-blue-50 rounded-lg p-3">
+              <p className="text-gray-600 text-sm leading-relaxed bg-orange-50 rounded-lg p-3">
                 {issue.description || 'No description provided.'}
               </p>
             </div>
@@ -235,8 +237,8 @@ const IssueCard: React.FC<{ issue: any }> = ({ issue }) => {
 
         <div className="flex flex-col gap-3 lg:items-end">
           <Link 
-            to={`/issues/${issue.id}`}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
+            to={`/issues/${issue.id}${techId ? `?techId=${encodeURIComponent(String(techId))}` : ''}`}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200 text-sm font-medium"
           >
             <Icons.Open />
             Open Details
@@ -290,9 +292,11 @@ const IssueCardSkeleton: React.FC = () => (
 
 export default function TechnicianDashboard() {
   const [page, setPage] = useState(1)
+  const [mobileOpen, setMobileOpen] = useState(false)
   const navigate = useNavigate()
 
   const [techInfo, setTechInfo] = useState<{ 
+    id?: string | number;
     full_name?: string; 
     registration_number?: string;
     email?: string;
@@ -337,6 +341,7 @@ export default function TechnicianDashboard() {
         if (!cancelled && res?.data) {
           const tech = res.data?.technician || null
           setTechInfo({
+            id: res.data?.id,
             full_name: tech?.full_name || res.data.username,
             registration_number: tech?.registration_number || '',
             email: res.data?.email || '',
@@ -387,174 +392,243 @@ export default function TechnicianDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+    <div className="flex h-screen bg-orange-50">
+      {/* Mobile Overlay */}
+      {mobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar - Hidden on mobile, shown when mobileOpen is true */}
+      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-80 bg-gradient-to-b from-orange-900 to-orange-800 text-white p-6 flex flex-col transform transition-transform duration-300 ease-in-out ${
+        mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      }`}>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold">RK Autos</h1>
+            <p className="text-orange-200 text-sm mt-1">Technician Portal</p>
+          </div>
+          <button 
+            className="lg:hidden p-2"
+            onClick={() => setMobileOpen(false)}
+          >
+            <Icons.Close className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* User Info */}
+        <div className="mb-6 p-3 bg-white/5 rounded-md">
+          {techInfo ? (
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-600 rounded-lg">
-                <Icons.Wrench className="text-white" />
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-white flex-shrink-0">
+                {techInfo.photo ? (
+                  <img src={techInfo.photo} alt={techInfo.full_name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="p-1.5 bg-orange-100 rounded-md flex items-center justify-center h-full">
+                    <Icons.User />
+                  </div>
+                )}
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Technician Portal</h1>
-                <p className="text-gray-600 text-sm">Automotive Repair & Maintenance</p>
+                <div className="text-sm font-medium">{techInfo.full_name}</div>
+                <div className="text-xs text-orange-200">{techInfo.registration_number}</div>
+                <div className="text-xs text-orange-300 mt-1">{techInfo.email}</div>
+              </div>
+            </div>
+          ) : <div className="text-sm text-orange-200">Welcome, Technician</div>}
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1">
+          <h3 className="text-xs uppercase tracking-wider text-orange-300 font-semibold mb-4">Quick Actions</h3>
+          <div className="space-y-2">
+            <button 
+              onClick={() => setMobileOpen(false)}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-orange-100 hover:bg-orange-700 hover:text-white"
+            >
+              <Icons.Vehicle />
+              <span className="font-medium">My Issues</span>
+            </button>
+          </div>
+        </nav>
+
+        <div className="mt-6">
+          <Button variant="outline" onClick={handleLogout}>
+            Logout
+          </Button>
+        </div>
+      </aside>
+
+      <main className="flex-1 p-4 lg:p-8 overflow-auto">
+        <div className="max-w-7xl mx-auto">
+          {/* Header with Hamburger */}
+          <div className="mb-6 lg:mb-8 flex items-start justify-between">
+            <div className="flex items-center gap-4">
+              <button 
+                className="lg:hidden p-2 bg-orange-500 text-white rounded-lg"
+                onClick={() => setMobileOpen(true)}
+              >
+                <Icons.Menu className="w-6 h-6" />
+              </button>
+              <div>
+                <h1 className="text-2xl lg:text-3xl font-bold text-orange-900 mb-2">
+                  Technician Dashboard
+                </h1>
+                <p className="text-orange-700 text-sm lg:text-base">
+                  Automotive Repair & Maintenance
+                </p>
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               {techInfo && (
-                <div className="flex items-center gap-3 bg-blue-50 rounded-lg px-4 py-2">
+                <div className="hidden lg:flex items-center gap-3 bg-orange-50 rounded-lg px-4 py-2">
                   <div className="w-12 h-12 rounded-full overflow-hidden bg-white flex-shrink-0">
                     {techInfo.photo ? (
                       <img src={techInfo.photo} alt={techInfo.full_name} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="p-1.5 bg-blue-100 rounded-md flex items-center justify-center h-full">
+                      <div className="p-1.5 bg-orange-100 rounded-md flex items-center justify-center h-full">
                         <Icons.User />
                       </div>
                     )}
                   </div>
                   <div className="text-right">
-                    <div className="font-medium text-gray-900">{techInfo.full_name}</div>
-                    <div className="text-sm text-gray-600">{techInfo.registration_number}</div>
+                    <div className="font-medium text-orange-900">{techInfo.full_name}</div>
+                    <div className="text-sm text-orange-700">{techInfo.registration_number}</div>
                   </div>
                 </div>
               )}
-
-              <Button variant="outline" onClick={handleLogout} className="ml-2">
-                Logout
-              </Button>
             </div>
           </div>
-        </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Icons.Vehicle />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">{data?.count || 0}</div>
-                <div className="text-sm text-gray-600">Total Assigned Issues</div>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-yellow-100 rounded-lg">
-                <Icons.Status />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">
-                  {data?.results?.filter((issue: any) => 
-                    ['pending', 'fixing'].includes(issue.status?.toLowerCase())
-                  ).length || 0}
+          {/* Stats Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Card className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-orange-100 rounded-lg">
+                  <Icons.Vehicle className="text-orange-600" />
                 </div>
-                <div className="text-sm text-gray-600">Active Issues</div>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <Icons.Calendar />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">
-                  {data?.results?.filter((issue: any) => 
-                    issue.status?.toLowerCase() === 'completed'
-                  ).length || 0}
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">{data?.count || 0}</div>
+                  <div className="text-sm text-gray-600">Total Assigned Issues</div>
                 </div>
-                <div className="text-sm text-gray-600">Completed Issues</div>
               </div>
-            </div>
-          </Card>
-        </div>
+            </Card>
 
-        {/* Issues Section */}
-        <Card className="p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">Your Assigned Issues</h2>
-              <p className="text-gray-600 text-sm mt-1">
-                Manage and track all repair jobs assigned to you
-              </p>
-            </div>
-            
-            {data && data.count > 0 && (
-              <div className="flex items-center gap-2 mt-4 sm:mt-0">
-                <span className="text-sm text-gray-600">
-                  Page {page} of {totalPages || 1}
-                </span>
+            <Card className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-yellow-100 rounded-lg">
+                  <Icons.Status className="text-yellow-600" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {data?.results?.filter((issue: any) => 
+                      ['pending', 'fixing'].includes(issue.status?.toLowerCase())
+                    ).length || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Active Issues</div>
+                </div>
               </div>
-            )}
+            </Card>
+
+            <Card className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-green-100 rounded-lg">
+                  <Icons.Calendar className="text-green-600" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {data?.results?.filter((issue: any) => 
+                      issue.status?.toLowerCase() === 'completed'
+                    ).length || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Completed Issues</div>
+                </div>
+              </div>
+            </Card>
           </div>
 
-          {/* Issues List */}
-          <div className="space-y-4">
-            {isLoading ? (
-              Array.from({ length: 3 }).map((_, index) => (
-                <IssueCardSkeleton key={index} />
-              ))
-            ) : data?.results?.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <Icons.Wrench className="w-8 h-8 text-gray-400" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No Assigned Issues</h3>
-                <p className="text-gray-600 max-w-sm mx-auto">
-                  You don't have any repair issues assigned to you at the moment. 
-                  New assignments will appear here automatically.
+          {/* Issues Section */}
+          <Card className="p-4 lg:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Your Assigned Issues</h2>
+                <p className="text-gray-600 text-sm mt-1">
+                  Manage and track all repair jobs assigned to you
                 </p>
               </div>
-            ) : (
-              <>
-                {data?.results?.map((issue: any) => (
-                  <IssueCard key={issue.id} issue={issue} />
-                ))}
+              
+              {data && data.count > 0 && (
+                <div className="flex items-center gap-2 mt-4 sm:mt-0">
+                  <span className="text-sm text-gray-600">
+                    Page {page} of {totalPages || 1}
+                  </span>
+                </div>
+              )}
+            </div>
 
-                {/* Pagination */}
-                {data && data.count > 0 && (
-                  <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-                    <div className="text-sm text-gray-600">
-                      Showing {((page - 1) * 10) + 1} to {Math.min(page * 10, data.count)} of {data.count} issues
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => setPage(p => Math.max(1, p - 1))}
-                        disabled={page === 1}
-                        className="px-3 py-2"
-                      >
-                        <Icons.ChevronLeft />
-                        Previous
-                      </Button>
-                      
-                      <Button
-                        variant="outline"
-                        onClick={() => setPage(p => p + 1)}
-                        disabled={!data.next}
-                        className="px-3 py-2"
-                      >
-                        Next
-                        <Icons.ChevronRight />
-                      </Button>
-                    </div>
+            {/* Issues List */}
+            <div className="space-y-4">
+              {isLoading ? (
+                Array.from({ length: 3 }).map((_, index) => (
+                  <IssueCardSkeleton key={index} />
+                ))
+              ) : data?.results?.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <Icons.Wrench className="w-8 h-8 text-gray-400" />
                   </div>
-                )}
-              </>
-            )}
-          </div>
-        </Card>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Assigned Issues</h3>
+                  <p className="text-gray-600 max-w-sm mx-auto">
+                    You don't have any repair issues assigned to you at the moment. 
+                    New assignments will appear here automatically.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {data?.results?.map((issue: any) => (
+                    <IssueCard key={issue.id} issue={issue} techId={techInfo?.id} />
+                  ))}
+
+                  {/* Pagination */}
+                  {data && data.count > 0 && (
+                    <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+                      <div className="text-sm text-gray-600">
+                        Showing {((page - 1) * 10) + 1} to {Math.min(page * 10, data.count)} of {data.count} issues
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => setPage(p => Math.max(1, p - 1))}
+                          disabled={page === 1}
+                          className="px-3 py-2"
+                        >
+                          <Icons.ChevronLeft />
+                          Previous
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          onClick={() => setPage(p => p + 1)}
+                          disabled={!data.next}
+                          className="px-3 py-2"
+                        >
+                          Next
+                          <Icons.ChevronRight />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </Card>
+        </div>
       </main>
     </div>
   )
 }
+

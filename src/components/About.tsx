@@ -202,8 +202,7 @@ export default function About() {
               </div>
               <div className="relative">
                 <img 
-                  src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
-                  alt="RK AUTOS Garage"
+                  src={image}
                   className="rounded-2xl shadow-2xl w-full h-80 object-cover"
                 />
                 <div className="absolute -bottom-6 -left-6 bg-orange-500 text-white p-6 rounded-2xl shadow-xl">

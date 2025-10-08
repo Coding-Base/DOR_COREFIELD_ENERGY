@@ -97,11 +97,11 @@ export default function TechnicianRegister() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
+          <div className="mx-auto w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
             <Icons.Wrench className="text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Join Our Team</h1>
@@ -124,7 +124,7 @@ export default function TechnicianRegister() {
                     onChange={e => setFullName(e.target.value)} 
                     placeholder="Full name" 
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors"
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50 transition-colors"
                   />
                 </div>
 
@@ -138,7 +138,7 @@ export default function TechnicianRegister() {
                     placeholder="Email address" 
                     type="email"
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors"
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50 transition-colors"
                   />
                 </div>
 
@@ -151,7 +151,7 @@ export default function TechnicianRegister() {
                     onChange={e => setPhone(e.target.value)} 
                     placeholder="Phone number" 
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors"
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50 transition-colors"
                   />
                 </div>
 
@@ -165,7 +165,7 @@ export default function TechnicianRegister() {
                     placeholder="Password" 
                     type="password" 
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors"
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50 transition-colors"
                   />
                 </div>
               </div>
@@ -180,7 +180,7 @@ export default function TechnicianRegister() {
               <select 
                 value={employment} 
                 onChange={e => setEmployment(e.target.value)} 
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50 transition-colors"
               >
                 <option value="staff">Staff Technician</option>
                 <option value="contract">Contract Technician</option>
@@ -192,7 +192,7 @@ export default function TechnicianRegister() {
               <label className="block text-sm font-medium text-gray-700 mb-3">Technical Skills</label>
               <div className="grid grid-cols-2 gap-3">
                 {(availableSkills.length > 0 ? availableSkills : [{id:1,name:'Mechanic'},{id:2,name:'Rewire'},{id:3,name:'Painter'},{id:4,name:'Car Upgrade'}]).map((s:any) => (
-                  <label key={s.id} className="flex items-center p-3 border border-gray-300 rounded-xl hover:bg-blue-50 transition-colors cursor-pointer">
+                  <label key={s.id} className="flex items-center p-3 border border-gray-300 rounded-xl hover:bg-orange-50 transition-colors cursor-pointer">
                     <input 
                       type="checkbox" 
                       value={s.name} 
@@ -201,7 +201,7 @@ export default function TechnicianRegister() {
                         const val = e.target.value
                         setSkills(prev => prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val])
                       }} 
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3"
+                      className="rounded border-gray-300 text-orange-500 focus:ring-orange-500 mr-3"
                     />
                     <span className="text-sm text-gray-700">{s.name}</span>
                   </label>
@@ -214,7 +214,7 @@ export default function TechnicianRegister() {
               <label className="block text-sm font-medium text-gray-700 mb-3">Vehicle Expertise</label>
               <div className="grid grid-cols-2 gap-3">
                 {(availableModels.length > 0 ? availableModels : [{id:1,name:'Toyota'},{id:2,name:'Honda'},{id:3,name:'Ford'},{id:4,name:'BMW'},{id:5,name:'Nissan'}]).map((m:any) => (
-                  <label key={m.id} className="flex items-center p-3 border border-gray-300 rounded-xl hover:bg-blue-50 transition-colors cursor-pointer">
+                  <label key={m.id} className="flex items-center p-3 border border-gray-300 rounded-xl hover:bg-orange-50 transition-colors cursor-pointer">
                     <input 
                       type="checkbox" 
                       value={m.name} 
@@ -223,7 +223,7 @@ export default function TechnicianRegister() {
                         const val = e.target.value
                         setExpertise(prev => prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val])
                       }} 
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3"
+                      className="rounded border-gray-300 text-orange-500 focus:ring-orange-500 mr-3"
                     />
                     <span className="text-sm text-gray-700">{m.name}</span>
                   </label>
@@ -241,7 +241,7 @@ export default function TechnicianRegister() {
                 type="date" 
                 value={dob} 
                 onChange={e => setDob(e.target.value)} 
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-colors"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50 transition-colors"
               />
             </div>
 
@@ -256,7 +256,7 @@ export default function TechnicianRegister() {
                   type="file" 
                   accept="image/*" 
                   onChange={handlePhotoChange} 
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
                 />
                 {photoPreview && (
                   <div className="flex justify-center">
@@ -270,7 +270,7 @@ export default function TechnicianRegister() {
             <button 
               type="submit" 
               disabled={isLoading}
-              className="w-full bg-blue-600 text-white py-4 px-4 rounded-xl font-medium hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25"
+              className="w-full bg-orange-500 text-white py-4 px-4 rounded-xl font-medium hover:bg-orange-600 focus:ring-4 focus:ring-orange-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/25"
             >
               {isLoading ? (
                 <>
@@ -290,7 +290,7 @@ export default function TechnicianRegister() {
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Already have an account?{' '}
-              <Link to="/login" className="text-blue-600 font-medium hover:text-blue-700">
+              <Link to="/login" className="text-orange-500 font-medium hover:text-orange-600">
                 Sign in here
               </Link>
             </p>

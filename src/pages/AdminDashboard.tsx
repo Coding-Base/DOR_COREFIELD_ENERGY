@@ -27,6 +27,7 @@ const Icons = {
   Download: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
   Plus: (props: any) => <svg {...props} className={`w-4 h-4 ${props.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>,
   Menu: (props: any) => <svg {...props} className={`w-6 h-6 ${props.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16"/></svg>,
+  Close: (props: any) => <svg {...props} className={`w-6 h-6 ${props.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>,
   Calendar: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
 }
 
@@ -77,9 +78,9 @@ const Button: React.FC<{
     lg: "px-5 py-3 text-lg"
   }
   const variants: any = {
-    primary: "bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md disabled:bg-gray-300 disabled:text-gray-500",
-    secondary: "bg-green-600 hover:bg-green-700 text-white shadow-sm hover:shadow-md disabled:bg-gray-300 disabled:text-gray-500",
-    outline: "border border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 bg-white disabled:bg-gray-100 disabled:text-gray-400"
+    primary: "bg-orange-500 hover:bg-orange-600 text-white shadow-sm hover:shadow-md disabled:bg-gray-300 disabled:text-gray-500",
+    secondary: "bg-orange-500 hover:bg-orange-600 text-white shadow-sm hover:shadow-md disabled:bg-gray-300 disabled:text-gray-500",
+    outline: "border border-orange-500 hover:border-orange-600 text-orange-500 hover:text-orange-600 bg-white disabled:bg-gray-100 disabled:text-gray-400"
   }
   return (
     <button className={`${baseStyles} ${sizes[size]} ${variants[variant]} ${className}`} onClick={onClick} disabled={disabled || loading}>
@@ -101,7 +102,7 @@ const Input: React.FC<{
   <div className={className}>
     {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}{required && <span className="text-red-500 ml-1">*</span>}</label>}
     <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors duration-200" />
   </div>
 )
 
@@ -118,7 +119,7 @@ const useToasts = () => {
   const container = (
     <div className="fixed right-6 bottom-6 z-50 flex flex-col gap-3">
       {toasts.map(t => (
-        <div key={t.id} className={`max-w-sm w-full p-3 rounded-lg shadow-md ${t.type === 'error' ? 'bg-red-50 border border-red-200' : t.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-white border'}`}>
+        <div key={t.id} className={`max-w-sm w-full p-3 rounded-lg shadow-md ${t.type === 'error' ? 'bg-red-50 border border-red-200' : t.type === 'success' ? 'bg-orange-50 border border-orange-200' : 'bg-white border'}`}>
           <div className="flex items-start justify-between gap-2">
             <div>
               <div className="font-semibold text-sm">{t.title}</div>
@@ -194,7 +195,7 @@ const Combobox: React.FC<{
           onChange={e => { setSearch(e.target.value); setOpen(true) }}
           onFocus={() => setOpen(true)}
           placeholder={placeholder}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
         />
         <button type="button" className="px-3 py-2 border border-gray-300 rounded-lg bg-white" onClick={() => { setOpen(o => !o) }}>
           <Icons.ChevronDown />
@@ -269,7 +270,7 @@ const ColorPicker: React.FC<{
             key={c.name}
             type="button"
             onClick={() => { setSelectedNameLocal(c.name); setSelectedHexLocal(c.hex); onColorChange(c.name, c.hex) }}
-            className={`flex flex-col items-center gap-1 p-2 border rounded-lg transition-all duration-200 ${selectedNameLocal === c.name ? 'ring-2 ring-blue-500 border-blue-500' : 'border-gray-200 hover:border-gray-300'}`}
+            className={`flex flex-col items-center gap-1 p-2 border rounded-lg transition-all duration-200 ${selectedNameLocal === c.name ? 'ring-2 ring-orange-500 border-orange-500' : 'border-gray-200 hover:border-gray-300'}`}
           >
             <span className="w-8 h-8 rounded border border-gray-300" style={{ background: c.hex }} />
             <span className="text-xs text-gray-600">{c.name}</span>
@@ -277,7 +278,7 @@ const ColorPicker: React.FC<{
         ))}
       </div>
 
-      <div className="pt-2 border-t">
+      <div className="pt-2 border-t border-gray-300">
         <div className="grid grid-cols-2 gap-3">
           <Input label="Custom Color Name" value={selectedNameLocal} onChange={(v) => { setSelectedNameLocal(v); onColorChange(v, selectedHexLocal) }} placeholder="Enter color name" />
           <Input label="Custom Color Hex" value={selectedHexLocal} onChange={(v) => { setSelectedHexLocal(v); onColorChange(selectedNameLocal, v) }} placeholder="#123456" />
@@ -724,33 +725,51 @@ export default function AdminDashboard(): JSX.Element {
   const computedInvoiceTotal = (issueItemsTotal || 0) + parsedService
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar & main header UI */}
-      <aside className="w-80 bg-gradient-to-b from-blue-900 to-blue-800 text-white p-6 flex flex-col">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">RK Autos</h1>
-          <p className="text-blue-200 text-sm mt-1">Admin Dashboard</p>
+    <div className="flex h-screen bg-orange-50">
+      {/* Mobile Overlay */}
+      {mobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar - Hidden on mobile, shown when mobileOpen is true */}
+      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-80 bg-gradient-to-b from-orange-900 to-orange-800 text-white p-6 flex flex-col transform transition-transform duration-300 ease-in-out ${
+        mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      }`}>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold">RK Autos</h1>
+            <p className="text-orange-200 text-sm mt-1">Admin Dashboard</p>
+          </div>
+          <button 
+            className="lg:hidden p-2"
+            onClick={() => setMobileOpen(false)}
+          >
+            <Icons.Close className="w-6 h-6" />
+          </button>
         </div>
 
         <div className="mb-6 p-3 bg-white/5 rounded-md">
           {adminInfo ? (
             <>
               <div className="text-sm font-medium">{adminInfo.username || adminInfo.email || 'Admin'}</div>
-              <div className="text-xs text-blue-200">{adminInfo.email || ''}</div>
-              <div className="text-xs text-blue-300 mt-1">Role: {adminInfo.role || 'admin'}</div>
+              <div className="text-xs text-orange-200">{adminInfo.email || ''}</div>
+              <div className="text-xs text-orange-300 mt-1">Role: {adminInfo.role || 'admin'}</div>
             </>
-          ) : <div className="text-sm text-blue-200">Welcome, Admin</div>}
+          ) : <div className="text-sm text-orange-200">Welcome, Admin</div>}
         </div>
 
         <nav className="flex-1">
-          <h3 className="text-xs uppercase tracking-wider text-blue-300 font-semibold mb-4">Management</h3>
+          <h3 className="text-xs uppercase tracking-wider text-orange-300 font-semibold mb-4">Management</h3>
           <div className="space-y-2">
             {navItems.map(item => {
               const Icon = item.icon
               return (
-                <button key={item.key} onClick={() => setTab(item.key)}
+                <button key={item.key} onClick={() => { setTab(item.key); setMobileOpen(false) }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                    tab === item.key ? 'bg-white text-blue-700 shadow-lg' : 'text-blue-100 hover:bg-blue-700 hover:text-white'
+                    tab === item.key ? 'bg-white text-orange-700 shadow-lg' : 'text-orange-100 hover:bg-orange-700 hover:text-white'
                   }`}>
                   <Icon />
                   <span className="font-medium">{item.label}</span>
@@ -767,50 +786,58 @@ export default function AdminDashboard(): JSX.Element {
         </div>
       </aside>
 
-      <main className="flex-1 p-8 overflow-auto">
+      <main className="flex-1 p-4 lg:p-8 overflow-auto">
         <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="mb-8 flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {tab === 'customers' && 'Customers'}
-                {tab === 'vehicles' && 'Vehicles'}
-                {tab === 'issues' && 'Issues'}
-                {tab === 'invoices' && 'Invoices'}
-              </h1>
-              <p className="text-gray-600">
-                {tab === 'customers' && 'Search and manage customers'}
-                {tab === 'vehicles' && 'Search and manage vehicles'}
-                {tab === 'issues' && 'Search, view and create issues'}
-                {tab === 'invoices' && 'Search and reprint invoices'}
-              </p>
+          {/* Header with Hamburger */}
+          <div className="mb-6 lg:mb-8 flex items-start justify-between">
+            <div className="flex items-center gap-4">
+              <button 
+                className="lg:hidden p-2 bg-orange-500 text-white rounded-lg"
+                onClick={() => setMobileOpen(true)}
+              >
+                <Icons.Menu className="w-6 h-6" />
+              </button>
+              <div>
+                <h1 className="text-2xl lg:text-3xl font-bold text-orange-900 mb-2">
+                  {tab === 'customers' && 'Customers'}
+                  {tab === 'vehicles' && 'Vehicles'}
+                  {tab === 'issues' && 'Issues'}
+                  {tab === 'invoices' && 'Invoices'}
+                </h1>
+                <p className="text-orange-700 text-sm lg:text-base">
+                  {tab === 'customers' && 'Search and manage customers'}
+                  {tab === 'vehicles' && 'Search and manage vehicles'}
+                  {tab === 'issues' && 'Search, view and create issues'}
+                  {tab === 'invoices' && 'Search and reprint invoices'}
+                </p>
+              </div>
             </div>
 
             <div className="flex items-center gap-4">
               {adminInfo ? (
-                <div className="text-right">
-                  <div className="font-medium text-gray-900">{adminInfo.username || adminInfo.email}</div>
-                  <div className="text-sm text-gray-600">{adminInfo.email || ''}</div>
+                <div className="text-right hidden sm:block">
+                  <div className="font-medium text-orange-900">{adminInfo.username || adminInfo.email}</div>
+                  <div className="text-sm text-orange-700">{adminInfo.email || ''}</div>
                 </div>
               ) : (
-                <div className="text-right">
-                  <div className="font-medium text-gray-900">Admin</div>
-                  <div className="text-sm text-gray-600">Administrator</div>
+                <div className="text-right hidden sm:block">
+                  <div className="font-medium text-orange-900">Admin</div>
+                  <div className="text-sm text-orange-700">Administrator</div>
                 </div>
               )}
 
-              {tab === 'customers' && <Button variant="primary" onClick={handleOpenCreateCustomer}>Create Customer</Button>}
-              {tab === 'vehicles' && <Button variant="primary" onClick={handleOpenAddVehicle}>Add Vehicle</Button>}
-              {tab === 'issues' && <Button variant="primary" onClick={handleOpenCreateIssue}>Create Issue</Button>}
-              {tab === 'invoices' && <Button variant="primary" onClick={handleOpenCreateInvoice}>Create Invoice</Button>}
+              {tab === 'customers' && <Button variant="primary" onClick={handleOpenCreateCustomer} size="sm" className="text-sm">Create Customer</Button>}
+              {tab === 'vehicles' && <Button variant="primary" onClick={handleOpenAddVehicle} size="sm" className="text-sm">Add Vehicle</Button>}
+              {tab === 'issues' && <Button variant="primary" onClick={handleOpenCreateIssue} size="sm" className="text-sm">Create Issue</Button>}
+              {tab === 'invoices' && <Button variant="primary" onClick={handleOpenCreateInvoice} size="sm" className="text-sm">Create Invoice</Button>}
             </div>
           </div>
 
-          {/* Tab contents */}
+          {/* Tab contents with white background */}
           <div>
             {tab === 'customers' && (
-              <Card  className="p-6 min-h-[700px]">
-                <h3 className="text-lg font-semibold mb-4">Search Customers</h3>
+              <Card className="p-4 lg:p-6 min-h-[500px] lg:min-h-[700px]">
+                <h3 className="text-lg font-semibold mb-4 text-gray-900">Search Customers</h3>
                 <Combobox
                   placeholder="Search by name, phone or email..."
                   fetcher={({ search, page }) => fetchCustomersCB({ search, page })}
@@ -822,8 +849,8 @@ export default function AdminDashboard(): JSX.Element {
             )}
 
             {tab === 'vehicles' && (
-              <Card  className="p-6 min-h-[700px]">
-                <h3 className="text-lg font-semibold mb-4">Search Vehicles</h3>
+              <Card className="p-4 lg:p-6 min-h-[500px] lg:min-h-[700px]">
+                <h3 className="text-lg font-semibold mb-4 text-gray-900">Search Vehicles</h3>
                 <Combobox
                   placeholder="Search by model, owner or plate..."
                   fetcher={({ search, page }) => fetchVehiclesCB({ search, page })}
@@ -835,8 +862,8 @@ export default function AdminDashboard(): JSX.Element {
             )}
 
             {tab === 'issues' && (
-              <Card  className="p-6 min-h-[700px]">
-                <h3 className="text-lg font-semibold mb-4">Search Issues</h3>
+              <Card className="p-4 lg:p-6 min-h-[500px] lg:min-h-[700px]">
+                <h3 className="text-lg font-semibold mb-4 text-gray-900">Search Issues</h3>
                 <Combobox
                   placeholder="Search by user name, phone or issue title..."
                   fetcher={({ search, page }) => fetchIssuesCB({ search, page })}
@@ -848,8 +875,8 @@ export default function AdminDashboard(): JSX.Element {
             )}
 
             {tab === 'invoices' && (
-              <Card  className="p-6 min-h-[700px]">
-                <h3 className="text-lg font-semibold mb-4">Search Invoices</h3>
+              <Card className="p-4 lg:p-6 min-h-[500px] lg:min-h-[700px]">
+                <h3 className="text-lg font-semibold mb-4 text-gray-900">Search Invoices</h3>
                 <Combobox
                   placeholder="Search by invoice number, issue number or user name..."
                   fetcher={({ search, page }) => fetchInvoicesCB({ search, page })}
@@ -863,8 +890,7 @@ export default function AdminDashboard(): JSX.Element {
         </div>
       </main>
 
-      {/* Modals */}
-
+      {/* Modals remain the same */}
       {/* Create Customer Modal */}
       <Modal open={openCreateCustomer} onClose={() => setOpenCreateCustomer(false)} title="Create Customer">
         <div className="space-y-4">
@@ -878,7 +904,7 @@ export default function AdminDashboard(): JSX.Element {
         </div>
       </Modal>
 
-      {/* Add Vehicle Modal (keeps the updated behaviour) */}
+      {/* Add Vehicle Modal */}
       <Modal open={openAddVehicle} onClose={() => setOpenAddVehicle(false)} title="Register New Vehicle" size="lg">
         <div className="space-y-6 max-h-[70vh] overflow-auto pr-2">
           <div>
@@ -918,7 +944,7 @@ export default function AdminDashboard(): JSX.Element {
               <div className="space-y-3">
                 <div>
                   <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 max-h-48 overflow-auto"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 max-h-48 overflow-auto"
                     value={String(modelForBrand?.id || '')}
                     onChange={(e) => {
                       const id = e.target.value
@@ -955,7 +981,7 @@ export default function AdminDashboard(): JSX.Element {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Photo</label>
-            <input type="file" accept="image/*" onChange={e => setVehiclePhoto(e.target.files ? e.target.files[0] : null)} className="w-full px-3 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+            <input type="file" accept="image/*" onChange={e => setVehiclePhoto(e.target.files ? e.target.files[0] : null)} className="w-full px-3 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" />
           </div>
 
           <div className="flex gap-3 pt-4 border-t">
@@ -965,7 +991,7 @@ export default function AdminDashboard(): JSX.Element {
         </div>
       </Modal>
 
-      {/* Create Issue Modal (RESTORED) */}
+      {/* Create Issue Modal */}
       <Modal open={openCreateIssue} onClose={() => setOpenCreateIssue(false)} title="Create Issue" size="lg">
         <div className="space-y-4 max-h-[70vh] overflow-auto pr-2">
           <div>
@@ -999,7 +1025,7 @@ export default function AdminDashboard(): JSX.Element {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea value={issueDesc} onChange={(e)=>setIssueDesc(e.target.value)} rows={5} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+            <textarea value={issueDesc} onChange={(e)=>setIssueDesc(e.target.value)} rows={5} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"></textarea>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1110,7 +1136,7 @@ export default function AdminDashboard(): JSX.Element {
         </div>
       </Modal>
 
-      {/* Create Invoice Modal (FIXED) */}
+      {/* Create Invoice Modal */}
       <Modal open={openCreateInvoice} onClose={() => setOpenCreateInvoice(false)} title="Create Invoice">
         <div className="space-y-4">
           <div>
