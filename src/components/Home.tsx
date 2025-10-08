@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import image from './logork.jpg'
 
 // Icons for the interface
 const Icons = {
@@ -79,8 +80,8 @@ const ServiceCard: React.FC<{
   delay: number;
 }> = ({ icon, title, description, features, price, delay }) => (
   <AnimatedSection delay={delay} direction="up">
-    <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border border-gray-100 hover:border-blue-200 group transform hover:-translate-y-2">
-      <div className="w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+    <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border border-gray-100 hover:border-orange-200 group transform hover:-translate-y-2">
+      <div className="w-14 h-14 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
         {icon}
       </div>
       <h3 className="text-xl font-bold text-gray-900 mb-3">{title}</h3>
@@ -95,7 +96,7 @@ const ServiceCard: React.FC<{
       </div>
       {price && (
         <div className="mt-4 pt-4 border-t border-gray-200">
-          <div className="text-2xl font-bold text-blue-600">{price}</div>
+          <div className="text-2xl font-bold text-orange-600">{price}</div>
           <div className="text-sm text-gray-500">Starting from</div>
         </div>
       )}
@@ -119,11 +120,11 @@ const TestimonialCard: React.FC<{
         ))}
       </div>
       <div className="mb-4">
-        <Icons.Quote className="text-blue-600 opacity-20 mb-2" />
+        <Icons.Quote className="text-orange-600 opacity-20 mb-2" />
         <p className="text-gray-700 italic">"{content}"</p>
       </div>
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
+        <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold">
           {name.charAt(0)}
         </div>
         <div>
@@ -146,7 +147,7 @@ const TeamCard: React.FC<{
 }> = ({ name, role, experience, specialization, image, delay }) => (
   <AnimatedSection delay={delay} direction="up">
     <div className="bg-white rounded-2xl shadow-lg p-6 text-center group hover:shadow-xl transition-all duration-300">
-      <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
+      <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-2xl font-bold">
         {image ? (
           <img src={image} alt={name} className="w-full h-full rounded-full object-cover" />
         ) : (
@@ -154,11 +155,11 @@ const TeamCard: React.FC<{
         )}
       </div>
       <h3 className="text-lg font-bold text-gray-900 mb-2">{name}</h3>
-      <div className="text-blue-600 font-semibold mb-3">{role}</div>
+      <div className="text-orange-600 font-semibold mb-3">{role}</div>
       <div className="text-sm text-gray-600 mb-3">{experience} Experience</div>
       <div className="flex flex-wrap gap-2 justify-center">
         {specialization.map((spec, index) => (
-          <span key={index} className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
+          <span key={index} className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs">
             {spec}
           </span>
         ))}
@@ -206,13 +207,13 @@ export default function Home() {
     {
       name: "Sarah Johnson",
       role: "Regular Customer",
-      content: "The team at AutoPro fixed my transmission issue when three other shops couldn't figure it out. Professional service and fair pricing!",
+      content: "The team at RK AUTOS fixed my transmission issue when three other shops couldn't figure it out. Professional service and fair pricing!",
       rating: 5
     },
     {
       name: "Mike Chen",
       role: "Fleet Manager",
-      content: "We trust AutoPro with our entire fleet of 15 vehicles. Their preventive maintenance program has saved us thousands in repairs.",
+      content: "We trust RK AUTOS with our entire fleet of 15 vehicles. Their preventive maintenance program has saved us thousands in repairs.",
       rating: 5
     },
     {
@@ -270,33 +271,37 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50">
       {/* Navigation */}
       <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection direction="down" delay={100}>
             <div className="flex justify-between items-center py-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                  <Icons.Car className="text-white" />
+                <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-orange-500">
+                  <img 
+                    src={image}
+                    alt="RK AUTOS Logo"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-gray-900">AutoPro</div>
-                  <div className="text-xs text-gray-600">Automotive Excellence</div>
+                  <div className="text-xl font-bold text-gray-900">RK AUTOS</div>
+                  <div className="text-xs text-gray-600">Custom Garage</div>
                 </div>
               </div>
               
               {/* Desktop Navigation */}
               <div className="hidden md:flex items-center gap-8">
-                <Link to="/" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">Home</Link>
-                <Link to="/about" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">About</Link>
-                <Link to="/contact" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">Contact</Link>
-                <Link to="/privacy" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">Privacy</Link>
+                <Link to="/" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Home</Link>
+                <Link to="/about" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">About</Link>
+                <Link to="/contact" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contact</Link>
+                <Link to="/privacy" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Privacy</Link>
               </div>
 
               {/* Mobile Menu Button */}
               <div className="flex items-center gap-4">
-                <button className="bg-blue-600 text-white px-6 py-2 rounded-xl hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 font-medium hidden md:block">
+                <button className="bg-orange-500 text-white px-6 py-2 rounded-xl hover:bg-orange-600 transition-all duration-300 transform hover:scale-105 font-medium hidden md:block">
                   Book Service
                 </button>
                 <button 
@@ -315,33 +320,33 @@ export default function Home() {
               <div className="flex flex-col space-y-4 pb-4 border-t border-gray-200 pt-4">
                 <Link 
                   to="/" 
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors py-2"
+                  className="text-gray-700 hover:text-orange-600 font-medium transition-colors py-2"
                   onClick={handleNavClick}
                 >
                   Home
                 </Link>
                 <Link 
                   to="/about" 
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors py-2"
+                  className="text-gray-700 hover:text-orange-600 font-medium transition-colors py-2"
                   onClick={handleNavClick}
                 >
                   About
                 </Link>
                 <Link 
                   to="/contact" 
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors py-2"
+                  className="text-gray-700 hover:text-orange-600 font-medium transition-colors py-2"
                   onClick={handleNavClick}
                 >
                   Contact
                 </Link>
                 <Link 
                   to="/privacy" 
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors py-2"
+                  className="text-gray-700 hover:text-orange-600 font-medium transition-colors py-2"
                   onClick={handleNavClick}
                 >
                   Privacy
                 </Link>
-                <button className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all duration-300 font-medium w-full text-center">
+                <button className="bg-orange-500 text-white px-6 py-3 rounded-xl hover:bg-orange-600 transition-all duration-300 font-medium w-full text-center">
                   Book Service
                 </button>
               </div>
@@ -351,29 +356,29 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-blue-900 to-purple-900 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-black opacity-40"></div>
+      <section className="relative bg-gradient-to-r from-orange-900 to-orange-800 text-white overflow-hidden">
+        <div className="absolute inset-0 bg-black opacity-50"></div>
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: `url('https://media.istockphoto.com/id/2214445636/photo/happy-mechanic-working-at-an-auto-repair-shop-and-holding-tools.jpg?s=1024x1024&w=is&k=20&c=8E0tVmjUbbcN8ZapbiJLTLF-Xvjtg2XOjTgGw3xR1vM=')`
+            backgroundImage: `url('https://plus.unsplash.com/premium_photo-1677009541474-1fc2642943c1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8bWVjaGFuaWN8ZW58MHx8MHx8fDA%3D')`
           }}
         ></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
           <AnimatedSection direction="up" delay={200}>
             <div className="max-w-3xl">
               <h1 className="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                Premium Automotive <span className="text-blue-400">Repair</span> Services
+                Premium Automotive <span className="text-orange-400">Repair</span> Services
               </h1>
-              <p className="text-xl lg:text-2xl mb-8 text-blue-100 leading-relaxed">
+              <p className="text-xl lg:text-2xl mb-8 text-orange-100 leading-relaxed">
                 Expert technicians, state-of-the-art equipment, and unmatched customer service. 
-                Your vehicle deserves the best care.
+                Your vehicle deserves the best care at RK AUTOS.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="bg-blue-600 text-white px-8 py-4 rounded-xl hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 font-semibold text-lg shadow-lg">
+                <button className="bg-orange-500 text-white px-8 py-4 rounded-xl hover:bg-orange-600 transition-all duration-300 transform hover:scale-105 font-semibold text-lg shadow-lg shadow-orange-500/25">
                   Schedule Service
                 </button>
-                <button className="border-2 border-white text-white px-8 py-4 rounded-xl hover:bg-white hover:text-blue-900 transition-all duration-300 font-semibold text-lg">
+                <button className="border-2 border-white text-white px-8 py-4 rounded-xl hover:bg-white hover:text-orange-900 transition-all duration-300 font-semibold text-lg">
                   Learn More
                 </button>
               </div>
@@ -389,7 +394,7 @@ export default function Home() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
               {stats.map((stat, index) => (
                 <div key={index} className="text-center">
-                  <div className="text-4xl lg:text-5xl font-bold text-blue-600 mb-2">{stat.number}</div>
+                  <div className="text-4xl lg:text-5xl font-bold text-orange-600 mb-2">{stat.number}</div>
                   <div className="text-gray-600 font-medium">{stat.label}</div>
                 </div>
               ))}
@@ -399,7 +404,7 @@ export default function Home() {
       </section>
 
       {/* Services Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-orange-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection direction="up" delay={200}>
             <div className="text-center mb-16">
@@ -423,7 +428,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <AnimatedSection direction="right" delay={300}>
               <div>
-                <h2 className="text-4xl font-bold text-gray-900 mb-6">Why Choose AutoPro?</h2>
+                <h2 className="text-4xl font-bold text-gray-900 mb-6">Why Choose RK AUTOS?</h2>
                 <div className="space-y-4">
                   {[
                     "Certified ASE Master Technicians",
@@ -448,9 +453,9 @@ export default function Home() {
                   alt="Technician working"
                   className="rounded-2xl shadow-2xl w-full h-96 object-cover"
                 />
-                <div className="absolute -bottom-6 -left-6 bg-blue-600 text-white p-6 rounded-2xl shadow-xl">
+                <div className="absolute -bottom-6 -left-6 bg-orange-500 text-white p-6 rounded-2xl shadow-xl">
                   <div className="text-2xl font-bold">15+ Years</div>
-                  <div className="text-blue-100">of Excellence</div>
+                  <div className="text-orange-100">of Excellence</div>
                 </div>
               </div>
             </AnimatedSection>
@@ -459,12 +464,12 @@ export default function Home() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-700 text-white">
+      <section className="py-20 bg-gradient-to-r from-orange-500 to-orange-600 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection direction="up" delay={200}>
             <div className="text-center mb-16">
               <h2 className="text-4xl font-bold mb-4">What Our Clients Say</h2>
-              <p className="text-xl text-blue-100">Trusted by thousands of satisfied customers</p>
+              <p className="text-xl text-orange-100">Trusted by thousands of satisfied customers</p>
             </div>
           </AnimatedSection>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -493,19 +498,19 @@ export default function Home() {
       </section>
 
       {/* CEO Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-orange-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection direction="up" delay={300}>
             <div className="bg-white rounded-3xl shadow-xl p-8 lg:p-12">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div>
-                  <div className="w-32 h-32 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-4xl font-bold mb-6">
-                    JW
+                  <div className="w-32 h-32 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white text-4xl font-bold mb-6">
+                    RK
                   </div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-4">James Wilson</h2>
-                  <div className="text-blue-600 text-xl font-semibold mb-4">Founder & CEO</div>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-4">Robert King</h2>
+                  <div className="text-orange-600 text-xl font-semibold mb-4">Founder & CEO</div>
                   <p className="text-gray-600 text-lg leading-relaxed mb-6">
-                    "With over 20 years in the automotive industry, I founded AutoPro with one mission: 
+                    "With over 20 years in the automotive industry, I founded RK AUTOS with one mission: 
                     to provide honest, reliable, and expert automotive care. Our team shares my passion 
                     for excellence and commitment to customer satisfaction."
                   </p>
@@ -517,7 +522,7 @@ export default function Home() {
                 <div className="relative">
                   <img 
                     src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
-                    alt="CEO James Wilson"
+                    alt="CEO Robert King"
                     className="rounded-2xl shadow-lg w-full h-96 object-cover"
                   />
                 </div>
@@ -528,18 +533,18 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+      <section className="py-20 bg-gradient-to-r from-orange-500 to-orange-600 text-white">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <AnimatedSection direction="up" delay={300}>
             <h2 className="text-4xl font-bold mb-6">Ready to Experience Premium Auto Care?</h2>
-            <p className="text-xl text-blue-100 mb-8">
+            <p className="text-xl text-orange-100 mb-8">
               Schedule your service today and join thousands of satisfied customers
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-white text-blue-600 px-8 py-4 rounded-xl hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 font-semibold text-lg shadow-lg">
+              <button className="bg-white text-orange-600 px-8 py-4 rounded-xl hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 font-semibold text-lg shadow-lg">
                 Book Appointment
               </button>
-              <button className="border-2 border-white text-white px-8 py-4 rounded-xl hover:bg-white hover:text-blue-600 transition-all duration-300 font-semibold text-lg">
+              <button className="border-2 border-white text-white px-8 py-4 rounded-xl hover:bg-white hover:text-orange-600 transition-all duration-300 font-semibold text-lg">
                 Call Now
               </button>
             </div>
@@ -554,16 +559,20 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                    <Icons.Car className="text-white" />
+                  <div className="w-10 h-10 rounded-xl overflow-hidden border border-orange-500">
+                    <img 
+                      src="https://instagram.fabb1-1.fna.fbcdn.net/v/t51.2885-19/457854020_1242273323828499_6212613032888073770_n.jpg?stp=dst-jpg_s320x320_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby41MDAuYzIifQ&_nc_ht=instagram.fabb1-1.fna.fbcdn.net&_nc_cat=103&_nc_oc=Q6cZ2QFBjjLOM6me3mdAgN3su18LL_uFf0nV9MTkXwB9h5LicPndjuAUzMJyLrthuF60zNaO7r4P_GaFYi-MU2FINuAd&_nc_ohc=Yj97npUFIyMQ7kNvwEYZoFw&_nc_gid=s-hX3HZidXXvBe2xsHyqZw&edm=AOQ1c0wBAAAA&ccb=7-5&oh=00_AfdJoCQjj5Fmv91CpSOlMF-rOSoWu2C07yQBE2w4NQg0sA&oe=68EBFD18&_nc_sid=8b3546" 
+                      alt="RK AUTOS Logo"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div>
-                    <div className="text-xl font-bold">AutoPro</div>
-                    <div className="text-xs text-gray-400">Automotive Excellence</div>
+                    <div className="text-xl font-bold">RK AUTOS</div>
+                    <div className="text-xs text-gray-400">Custom Garage</div>
                   </div>
                 </div>
                 <p className="text-gray-400 text-sm">
-                  Premium automotive repair services with unmatched quality and customer care.
+                  Premium automotive repair services with unmatched quality and customer care at RK AUTOS Custom Garage.
                 </p>
               </div>
               <div>
@@ -605,7 +614,7 @@ export default function Home() {
           </AnimatedSection>
           <AnimatedSection direction="up" delay={300}>
             <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 text-sm">
-              <p>&copy; 2024 AutoPro Automotive. All rights reserved.</p>
+              <p>&copy; 2024 RK AUTOS Custom Garage. All rights reserved.</p>
             </div>
           </AnimatedSection>
         </div>

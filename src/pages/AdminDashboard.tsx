@@ -38,6 +38,24 @@ function unwrapList(data: any): any[] {
   return []
 }
 
+/**
+ * Convert a string to Title Case:
+ * - converts to lowercase first, then capitalizes the first letter of each word.
+ * - safe for null/undefined values.
+ */
+const titleCase = (input?: any) => {
+  if (input === null || input === undefined) return ''
+  const s = String(input).trim()
+  if (!s) return ''
+  // split on spaces, keep inner-word punctuation intact
+  return s
+    .toLowerCase()
+    .split(' ')
+    .filter(Boolean)
+    .map(w => w[0].toUpperCase() + w.slice(1))
+    .join(' ')
+}
+
 // ---------- Small UI primitives ----------
 const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
   <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${className}`}>{children}</div>
@@ -356,35 +374,51 @@ export default function AdminDashboard(): JSX.Element {
   const fetchCustomersCB = async ({ search = '', page = 1 }: { search: string; page: number }) => {
     const resp = await api.get('/admin/customers/', { params: { search, page, page_size: 10 } })
     const arr = resp.data.results || resp.data || []
-    const results = arr.map((c: any) => ({ id: c.id, label: `${c.name} (${c.phone || 'no phone'})`, meta: c }))
+    const results = arr.map((c: any) => ({ id: c.id, label: `${titleCase(c.name)} (${c.phone || 'no phone'})`, meta: c }))
     return { results, count: resp.data.count, next: resp.data.next }
   }
 
   const fetchVehiclesCB = async ({ search = '', page = 1 }: { search: string; page: number }) => {
     const resp = await api.get('/admin/vehicles/', { params: { search, page, page_size: 10 } })
     const arr = resp.data.results || resp.data || []
-    const results = arr.map((v: any) => ({ id: v.id, label: `${(v.model?.brand?.name) ? `${v.model.brand.name} ${v.model.name}` : (v.model?.name || 'Model')} - ${v.plate_number || 'NO-PLATE'} (Owner: ${v.owner?.name || '—'}#${v.owner?.id || '—'})`, meta: v }))
+    const results = arr.map((v: any) => {
+      const brandName = v.model?.brand?.name ? titleCase(v.model.brand.name) + ' ' : ''
+      const modelName = v.model?.name ? titleCase(v.model.name) : 'Model'
+      const ownerName = v.owner?.name ? titleCase(v.owner.name) : '—'
+      return {
+        id: v.id,
+        label: `${brandName}${modelName} - ${v.plate_number || 'NO-PLATE'} (Owner: ${ownerName}#${v.owner?.id || '—'})`,
+        meta: v
+      }
+    })
     return { results, count: resp.data.count, next: resp.data.next }
   }
 
   const fetchIssuesCB = async ({ search = '', page = 1 }: { search: string; page: number }) => {
     const resp = await api.get('/admin/issues/', { params: { search, page, page_size: 10, ordering: '-created_at' } })
     const arr = resp.data.results || resp.data || []
-    const results = arr.map((it: any) => ({ id: it.id, label: `${it.title || '(no title)'} — #${it.id} (${it.customer?.name || it.customer?.phone || '—'})`, meta: it }))
+    const results = arr.map((it: any) => ({
+      id: it.id,
+      label: `${it.title ? titleCase(it.title) : '(no title)'} — #${it.id} (${it.customer?.name ? titleCase(it.customer.name) : (it.customer?.phone || '—')})`,
+      meta: it
+    }))
     return { results, count: resp.data.count, next: resp.data.next }
   }
 
   const fetchInvoicesCB = async ({ search = '', page = 1 }: { search: string; page: number }) => {
     const resp = await api.get('/admin/invoices/', { params: { search, page, page_size: 10, ordering: '-created_at' } })
     const arr = resp.data.results || resp.data || []
-    const results = arr.map((inv: any) => ({ id: inv.id, label: `Invoice #${inv.id} — Issue #${inv.issue?.id} (${inv.issue?.customer?.name || inv.issue?.customer?.phone || '—'})`, meta: inv }))
+    const results = arr.map((inv: any) => {
+      const custName = inv.issue?.customer?.name ? titleCase(inv.issue.customer.name) : (inv.issue?.customer?.phone || '—')
+      return { id: inv.id, label: `Invoice #${inv.id} — Issue #${inv.issue?.id} (${custName})`, meta: inv }
+    })
     return { results, count: resp.data.count, next: resp.data.next }
   }
 
   const fetchBrandsCB = async ({ search = '', page = 1 }: { search: string; page: number }) => {
     const resp = await api.get('/brands/', { params: { search, page, page_size: 10 } })
     const arr = resp.data.results || resp.data || []
-    const results = arr.map((b: any) => ({ id: b.id, label: b.name, meta: b }))
+    const results = arr.map((b: any) => ({ id: b.id, label: titleCase(b.name), meta: b }))
     return { results, count: resp.data.count, next: resp.data.next }
   }
 
@@ -392,7 +426,9 @@ export default function AdminDashboard(): JSX.Element {
     if (!brandId) return []
     try {
       const resp = await api.get('/vehicle-models/', { params: { brand: brandId, page_size: 50 } })
-      return resp.data.results || resp.data || []
+      // Normalize names to title case for display in select
+      const data = resp.data.results || resp.data || []
+      return data.map((m: any) => ({ ...m, name: titleCase(m.name) }))
     } catch (err) {
       return []
     }
@@ -403,7 +439,11 @@ export default function AdminDashboard(): JSX.Element {
     const params: any = { search, page, page_size: 10 }
     if (owner) params.owner = owner
     const resp = await api.get('/admin/vehicles/', { params })
-    const results = (resp.data.results || resp.data || []).map((v: any) => ({ id: v.id, label: `${(v.model?.brand?.name ? `${v.model.brand.name} ` : '')}${v.model?.name || 'Model'} - ${v.plate_number || 'NO-PLATE'}`, meta: v }))
+    const results = (resp.data.results || resp.data || []).map((v: any) => {
+      const brand = v.model?.brand?.name ? titleCase(v.model.brand.name) + ' ' : ''
+      const modelName = v.model?.name ? titleCase(v.model.name) : 'Model'
+      return { id: v.id, label: `${brand}${modelName} - ${v.plate_number || 'NO-PLATE'}`, meta: v }
+    })
     return { results, count: resp.data.count, next: resp.data.next }
   }
 
@@ -411,7 +451,11 @@ export default function AdminDashboard(): JSX.Element {
   const fetchIssuesWithoutInvoiceCB = async ({ search = '', page = 1 }: { search: string; page: number }) => {
     const resp = await api.get('/admin/issues/', { params: { search, page, page_size: 10, ordering: '-created_at', has_invoice: 'false' } })
     const arr = resp.data.results || resp.data || []
-    const results = arr.map((it: any) => ({ id: it.id, label: `${it.title || '(no title)'} — #${it.id} (${it.customer?.name || it.customer?.phone || '—'})`, meta: it }))
+    const results = arr.map((it: any) => ({
+      id: it.id,
+      label: `${it.title ? titleCase(it.title) : '(no title)'} — #${it.id} (${it.customer?.name ? titleCase(it.customer.name) : (it.customer?.phone || '—')})`,
+      meta: it
+    }))
     return { results, count: resp.data.count, next: resp.data.next }
   }
 
@@ -424,9 +468,11 @@ export default function AdminDashboard(): JSX.Element {
   const handleSubmitCreateCustomer = async () => {
     if (!custName.trim()) { pushToast({ type: 'error', title: 'Validation', message: 'Name required' }); return }
     try {
-      await createCustomer.mutateAsync({ name: custName, email: custEmail, phone: custPhone })
+      // Optional: send title-cased name to backend if you want uniform storage:
+      const payload = { name: titleCase(custName), email: custEmail, phone: custPhone }
+      await createCustomer.mutateAsync(payload)
       qc.invalidateQueries(['customers'])
-      pushToast({ type: 'success', title: 'Customer created', message: `${custName} added.` })
+      pushToast({ type: 'success', title: 'Customer created', message: `${titleCase(custName)} added.` })
       setOpenCreateCustomer(false)
     } catch (err: any) {
       pushToast({ type: 'error', title: 'Create failed', message: String(err?.response?.data || err?.message || err) })
@@ -472,12 +518,12 @@ export default function AdminDashboard(): JSX.Element {
       // create brand if needed
       let brandId: number | string | null = selectedBrand ? selectedBrand.id : null
       if (!brandId && brandCustom) {
-        const resp = await api.post('/brands/', { name: brandCustom })
+        const resp = await api.post('/brands/', { name: titleCase(brandCustom) })
         brandId = resp.data.id
         createdBrandId = brandId
-        setSelectedBrand({ id: String(brandId), label: brandCustom })
+        setSelectedBrand({ id: String(brandId), label: titleCase(brandCustom) })
         qc.invalidateQueries(['brands', 'fetchBrands'])
-        pushToast({ type: 'success', title: 'Brand Created', message: `New brand "${brandCustom}" created` })
+        pushToast({ type: 'success', title: 'Brand Created', message: `New brand "${titleCase(brandCustom)}" created` })
       }
 
       if (typeof brandId === 'string' && /^\d+$/.test(brandId)) brandId = parseInt(brandId, 10)
@@ -485,18 +531,18 @@ export default function AdminDashboard(): JSX.Element {
       // create model if needed
       let modelId: number | string | null = modelForBrand ? modelForBrand.id : null
       if (!modelId && modelCustom) {
-        const resp = await api.post('/vehicle-models/', { name: modelCustom, brand_id: brandId })
+        const resp = await api.post('/vehicle-models/', { name: titleCase(modelCustom), brand_id: brandId })
         modelId = resp.data.id
         createdModelId = modelId
-        pushToast({ type: 'success', title: 'Model Created', message: `New model "${modelCustom}" created` })
+        pushToast({ type: 'success', title: 'Model Created', message: `New model "${titleCase(modelCustom)}" created` })
         const returnedModel = resp.data
-        setModelsForBrand(prev => [{ id: returnedModel.id, name: returnedModel.name, brand_id: returnedModel.brand || brandId }, ...prev])
+        setModelsForBrand(prev => [{ id: returnedModel.id, name: titleCase(returnedModel.name), brand_id: returnedModel.brand || brandId }, ...prev])
         qc.invalidateQueries(['vehicle-models', 'models'])
       }
 
       if (typeof modelId === 'string' && /^\d+$/.test(modelId)) modelId = parseInt(modelId, 10)
 
-      const colorPayload = colorName ? (colorHex ? { name: colorName, hex: colorHex } : { name: colorName }) : null
+      const colorPayload = colorName ? (colorHex ? { name: titleCase(colorName), hex: colorHex } : { name: titleCase(colorName) }) : null
 
       // send owner_id & model_id (backend expects these)
       if (vehiclePhoto) {
@@ -564,7 +610,7 @@ export default function AdminDashboard(): JSX.Element {
       if (issueType === 'servicing' && nextDueDate) payload.next_due_date = nextDueDate
       await createIssue.mutateAsync(payload)
       qc.invalidateQueries(['issues'])
-      pushToast({ type: 'success', title: 'Issue created', message: `${issueTitle}` })
+      pushToast({ type: 'success', title: 'Issue created', message: `${titleCase(issueTitle)}` })
       setOpenCreateIssue(false)
     } catch (err: any) {
       pushToast({ type: 'error', title: 'Create issue failed', message: String(err?.response?.data || err?.message || err) })
@@ -682,7 +728,7 @@ export default function AdminDashboard(): JSX.Element {
       {/* Sidebar & main header UI */}
       <aside className="w-80 bg-gradient-to-b from-blue-900 to-blue-800 text-white p-6 flex flex-col">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold">AutoRepair Pro</h1>
+          <h1 className="text-2xl font-bold">RK Autos</h1>
           <p className="text-blue-200 text-sm mt-1">Admin Dashboard</p>
         </div>
 
@@ -795,7 +841,7 @@ export default function AdminDashboard(): JSX.Element {
                   placeholder="Search by user name, phone or issue title..."
                   fetcher={({ search, page }) => fetchIssuesCB({ search, page })}
                   onSelect={(it) => { if (it) setOpenIssueDetails({ open: true, issue: it.meta }) }}
-                  renderItem={(it) => <div><div className="font-medium">{it.meta.title || '(no title)'} <span className="text-xs text-gray-500">#{it.id}</span></div><div className="text-xs text-gray-500">{it.meta.customer?.name} • {new Date(it.meta.created_at).toLocaleString()}</div></div>}
+                  renderItem={(it) => <div><div className="font-medium">{it.meta.title ? titleCase(it.meta.title) : '(no title)'} <span className="text-xs text-gray-500">#{it.id}</span></div><div className="text-xs text-gray-500">{it.meta.customer?.name ? titleCase(it.meta.customer?.name) : ''} • {new Date(it.meta.created_at).toLocaleString()}</div></div>}
                 />
                 <div className="mt-6 text-sm text-gray-600">Tip: recent issues appear first.</div>
               </Card>
@@ -884,7 +930,7 @@ export default function AdminDashboard(): JSX.Element {
                   >
                     <option value="">Select existing model</option>
                     {modelsForBrand.map((m: any) => (
-                      <option key={m.id} value={m.id}>{m.name}</option>
+                      <option key={m.id} value={m.id}>{titleCase(m.name)}</option>
                     ))}
                   </select>
                 </div>
@@ -961,9 +1007,9 @@ export default function AdminDashboard(): JSX.Element {
               <label className="block text-sm font-medium text-gray-700 mb-1">Assign Technician</label>
               <select value={issueTech || ''} onChange={(e)=>setIssueTech(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
                 <option value="">Select technician</option>
-                {technicians.map((t:any)=>(
-                  <option key={t.id} value={t.id}>{t.full_name || t.registration_number || t.email}</option>
-                ))}
+                {technicians.map((t:any)=>((
+                  <option key={t.id} value={t.id}>{titleCase(t.full_name) || t.registration_number || t.email}</option>
+                )))}
               </select>
             </div>
 
@@ -1020,9 +1066,9 @@ export default function AdminDashboard(): JSX.Element {
         <div className="space-y-4 max-h-[70vh] overflow-auto pr-2">
           {openIssueDetails.issue ? (
             <>
-              <div className="text-sm text-gray-600">Title: <strong>{openIssueDetails.issue.title}</strong></div>
+              <div className="text-sm text-gray-600">Title: <strong>{titleCase(openIssueDetails.issue.title)}</strong></div>
               <div className="text-sm text-gray-600">Status: <strong>{openIssueDetails.issue.status}</strong></div>
-              <div className="text-sm text-gray-600">Assigned to: <strong>{openIssueDetails.issue.assigned_to?.full_name || openIssueDetails.issue.assigned_to?.registration_number || '—'}</strong></div>
+              <div className="text-sm text-gray-600">Assigned to: <strong>{titleCase(openIssueDetails.issue.assigned_to?.full_name) || openIssueDetails.issue.assigned_to?.registration_number || '—'}</strong></div>
               <div>
                 <h4 className="text-sm font-medium text-gray-700 mb-1">Description</h4>
                 <div className="text-sm text-gray-600 bg-gray-50 rounded p-3">{openIssueDetails.issue.description}</div>
@@ -1031,12 +1077,12 @@ export default function AdminDashboard(): JSX.Element {
               <div>
                 <h4 className="text-sm font-medium text-gray-700 mb-1">Treatments</h4>
                 <div className="space-y-2">
-                  {(openIssueDetails.issue.treatments || []).map((t:any)=>(
+                  {(openIssueDetails.issue.treatments || []).map((t:any)=>((
                     <div key={t.id} className="p-2 border rounded bg-white">
-                      <div className="text-xs text-gray-500">By: {t.technician?.full_name || '—'} • {new Date(t.created_at).toLocaleString()}</div>
+                      <div className="text-xs text-gray-500">By: {titleCase(t.technician?.full_name) || '—'} • {new Date(t.created_at).toLocaleString()}</div>
                       <div className="text-sm">{t.description}</div>
                     </div>
-                  ))}
+                  )))}
                   {(!openIssueDetails.issue.treatments || openIssueDetails.issue.treatments.length===0) && <div className="text-sm text-gray-500">No treatments yet.</div>}
                 </div>
               </div>
@@ -1044,12 +1090,12 @@ export default function AdminDashboard(): JSX.Element {
               <div>
                 <h4 className="text-sm font-medium text-gray-700 mb-1">Items</h4>
                 <div className="space-y-2">
-                  {(openIssueDetails.issue.items || []).map((it:any)=>(
+                  {(openIssueDetails.issue.items || []).map((it:any)=>((
                     <div key={it.id} className="p-2 border rounded bg-white flex justify-between">
-                      <div className="text-sm">{it.name}</div>
+                      <div className="text-sm">{titleCase(it.name)}</div>
                       <div className="text-sm font-medium">{it.amount}</div>
                     </div>
-                  ))}
+                  )))}
                   {(!openIssueDetails.issue.items || openIssueDetails.issue.items.length===0) && <div className="text-sm text-gray-500">No items yet.</div>}
                 </div>
               </div>
