@@ -1,8 +1,9 @@
 // src/pages/TechnicianDashboard.tsx
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../api/client'
+import Modal from '../components/Modal' // added for status modal
 
 // Icons for a professional automotive technician interface
 const Icons = {
@@ -62,10 +63,12 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
     pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     fixing: 'bg-orange-100 text-orange-800 border-orange-200',
     completed: 'bg-green-100 text-green-800 border-green-200',
-    closed: 'bg-gray-100 text-gray-800 border-gray-200'
+    closed: 'bg-gray-100 text-gray-800 border-gray-200',
+    available: 'bg-green-100 text-green-800 border-green-200',
+    unavailable: 'bg-red-100 text-red-800 border-red-200'
   }
 
-  const color = statusColors[status.toLowerCase() as keyof typeof statusColors] || 'bg-gray-100 text-gray-800 border-gray-200'
+  const color = statusColors[status?.toLowerCase?.() as keyof typeof statusColors] || 'bg-gray-100 text-gray-800 border-gray-200'
 
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${color}`}>
@@ -119,7 +122,7 @@ const useVehicleModel = (modelId: string | number) => {
 }
 
 // Enhanced Issue Card Component
-const IssueCard: React.FC<{ issue: any; techId?: string | number }> = ({ issue, techId }) => {
+const IssueCard: React.FC<{ issue: any; preserveTechParam?: string | null }> = ({ issue }) => {
   const { data: vehicle, isLoading: vehicleLoading } = useVehicle(issue?.vehicle || '')
   const { data: customer, isLoading: customerLoading } = useCustomer(issue?.customer || '')
   // FIXED: Use vehicle?.model?.id instead of vehicle?.model
@@ -237,7 +240,7 @@ const IssueCard: React.FC<{ issue: any; techId?: string | number }> = ({ issue, 
 
         <div className="flex flex-col gap-3 lg:items-end">
           <Link 
-            to={`/issues/${issue.id}${techId ? `?techId=${encodeURIComponent(String(techId))}` : ''}`}
+            to={`/issues/${issue.id}`}
             className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200 text-sm font-medium"
           >
             <Icons.Open />
@@ -294,17 +297,23 @@ export default function TechnicianDashboard() {
   const [page, setPage] = useState(1)
   const [mobileOpen, setMobileOpen] = useState(false)
   const navigate = useNavigate()
+  const qc = useQueryClient()
 
   const [techInfo, setTechInfo] = useState<{ 
-    id?: string | number;
+    id?: number;
     full_name?: string; 
     registration_number?: string;
     email?: string;
     photo?: string | null;
+    status?: string;
   } | null>(null)
 
   const { data, isLoading } = useTechnicianIssues(techInfo?.registration_number || null, page)
 
+  // Status modal state
+  const [statusModalOpen, setStatusModalOpen] = useState(false)
+  const [newStatus, setNewStatus] = useState<string>('')
+  
   // Helper to build image url
   const buildImageUrl = (photo: any) => {
     if (!photo) return null
@@ -341,11 +350,12 @@ export default function TechnicianDashboard() {
         if (!cancelled && res?.data) {
           const tech = res.data?.technician || null
           setTechInfo({
-            id: res.data?.id,
+            id: tech?.id || tech?.pk || undefined,
             full_name: tech?.full_name || res.data.username,
             registration_number: tech?.registration_number || '',
             email: res.data?.email || '',
-            photo: buildImageUrl(tech?.photo)
+            photo: buildImageUrl(tech?.photo),
+            status: tech?.status || 'available'
           })
         }
       } catch (e) {
@@ -389,6 +399,47 @@ export default function TechnicianDashboard() {
       setTechInfo(null)
       navigate('/login')
     }
+  }
+
+  // Mutation to update technician status (PATCH /technicians/{id}/)
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id?: number; status: string }) => {
+      if (!id) throw new Error('Technician id missing')
+      return api.patch(`/technicians/${id}/`, { status })
+    },
+    onMutate: async (variables) => {
+      // optimistic update
+      const previous = techInfo
+      setTechInfo(prev => prev ? { ...prev, status: variables.status } : prev)
+      return { previous }
+    },
+    onError: (err, variables, context: any) => {
+      // rollback on error
+      if (context?.previous) setTechInfo(context.previous)
+      console.error('Failed to update status', err)
+    },
+    onSuccess: (res) => {
+      // res.data may contain updated technician
+      const updated = res?.data
+      setTechInfo(prev => prev ? { ...prev, status: updated?.status || prev.status } : prev)
+      // invalidate queries that might depend on tech status
+      qc.invalidateQueries(['technician-issues'])
+    }
+  })
+
+  const openStatusModal = () => {
+    setNewStatus(techInfo?.status || 'available')
+    setStatusModalOpen(true)
+  }
+
+  const handleSaveStatus = async () => {
+    if (!techInfo?.id) {
+      // try fallback to registration number (not ideal)
+      alert('Cannot update status: technician id not available.')
+      return
+    }
+    updateStatusMutation.mutate({ id: techInfo.id, status: newStatus })
+    setStatusModalOpen(false)
   }
 
   return (
@@ -451,6 +502,21 @@ export default function TechnicianDashboard() {
               <Icons.Vehicle />
               <span className="font-medium">My Issues</span>
             </button>
+
+            {/* New Status control shown here */}
+            <div className="mt-4 px-1">
+              <div className="text-xs text-orange-200 mb-2">Status</div>
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <StatusBadge status={techInfo?.status || 'available'} />
+                </div>
+                <div>
+                  <Button variant="outline" onClick={openStatusModal} className="px-3 py-2 text-sm">
+                    Change
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
         </nav>
 
@@ -497,6 +563,7 @@ export default function TechnicianDashboard() {
                   <div className="text-right">
                     <div className="font-medium text-orange-900">{techInfo.full_name}</div>
                     <div className="text-sm text-orange-700">{techInfo.registration_number}</div>
+                    <div className="mt-1">{techInfo.status && <StatusBadge status={techInfo.status} />}</div>
                   </div>
                 </div>
               )}
@@ -589,7 +656,7 @@ export default function TechnicianDashboard() {
               ) : (
                 <>
                   {data?.results?.map((issue: any) => (
-                    <IssueCard key={issue.id} issue={issue} techId={techInfo?.id} />
+                    <IssueCard key={issue.id} issue={issue} />
                   ))}
 
                   {/* Pagination */}
@@ -628,7 +695,25 @@ export default function TechnicianDashboard() {
           </Card>
         </div>
       </main>
+
+      {/* Status Modal */}
+      <Modal open={statusModalOpen} onClose={() => setStatusModalOpen(false)} title="Update Your Status">
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">Set your current availability so admins can see it when assigning work.</p>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <select value={newStatus} onChange={(e) => setNewStatus(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+              <option value="available">Available</option>
+              <option value="unavailable">Unavailable</option>
+            </select>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <Button variant="primary" onClick={handleSaveStatus} loading={updateStatusMutation.isLoading}>Save</Button>
+            <Button variant="outline" onClick={() => setStatusModalOpen(false)}>Cancel</Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }
-

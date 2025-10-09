@@ -1,5 +1,5 @@
 // src/pages/AdminDashboard.tsx
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Modal from '../components/Modal'
 import api from '../api/client'
@@ -41,14 +41,11 @@ function unwrapList(data: any): any[] {
 
 /**
  * Convert a string to Title Case:
- * - converts to lowercase first, then capitalizes the first letter of each word.
- * - safe for null/undefined values.
  */
 const titleCase = (input?: any) => {
   if (input === null || input === undefined) return ''
   const s = String(input).trim()
   if (!s) return ''
-  // split on spaces, keep inner-word punctuation intact
   return s
     .toLowerCase()
     .split(' ')
@@ -359,6 +356,19 @@ export default function AdminDashboard(): JSX.Element {
   const [isCreatingInvoice, setIsCreatingInvoice] = useState(false)
   const [issueItemsTotal, setIssueItemsTotal] = useState<number>(0)
 
+  // List UI state for paginated tables (per tab)
+  const [pageState, setPageState] = useState({ customers: 1, vehicles: 1, issues: 1, invoices: 1 })
+  const [searchState, setSearchState] = useState({ customers: '', vehicles: '', issues: '', invoices: '' })
+  const [pageSize] = useState(10)
+
+  // Use refs for search inputs to prevent re-renders and to restore focus
+  const searchInputRefs = {
+    customers: useRef<HTMLInputElement>(null),
+    vehicles: useRef<HTMLInputElement>(null),
+    issues: useRef<HTMLInputElement>(null),
+    invoices: useRef<HTMLInputElement>(null)
+  }
+
   // Fetch admin info
   useEffect(() => {
     let cancelled = false
@@ -371,94 +381,97 @@ export default function AdminDashboard(): JSX.Element {
     return () => { cancelled = true }
   }, [])
 
-  // ---------- Fetchers for comboboxes ----------
-  const fetchCustomersCB = async ({ search = '', page = 1 }: { search: string; page: number }) => {
-    const resp = await api.get('/admin/customers/', { params: { search, page, page_size: 10 } })
-    const arr = resp.data.results || resp.data || []
-    const results = arr.map((c: any) => ({ id: c.id, label: `${titleCase(c.name)} (${c.phone || 'no phone'})`, meta: c }))
-    return { results, count: resp.data.count, next: resp.data.next }
-  }
-
-  const fetchVehiclesCB = async ({ search = '', page = 1 }: { search: string; page: number }) => {
-    const resp = await api.get('/admin/vehicles/', { params: { search, page, page_size: 10 } })
-    const arr = resp.data.results || resp.data || []
-    const results = arr.map((v: any) => {
-      const brandName = v.model?.brand?.name ? titleCase(v.model.brand.name) + ' ' : ''
-      const modelName = v.model?.name ? titleCase(v.model.name) : 'Model'
-      const ownerName = v.owner?.name ? titleCase(v.owner.name) : '—'
-      return {
-        id: v.id,
-        label: `${brandName}${modelName} - ${v.plate_number || 'NO-PLATE'} (Owner: ${ownerName}#${v.owner?.id || '—'})`,
-        meta: v
-      }
-    })
-    return { results, count: resp.data.count, next: resp.data.next }
-  }
-
-  const fetchIssuesCB = async ({ search = '', page = 1 }: { search: string; page: number }) => {
-    const resp = await api.get('/admin/issues/', { params: { search, page, page_size: 10, ordering: '-created_at' } })
-    const arr = resp.data.results || resp.data || []
-    const results = arr.map((it: any) => ({
-      id: it.id,
-      label: `${it.title ? titleCase(it.title) : '(no title)'} — #${it.id} (${it.customer?.name ? titleCase(it.customer.name) : (it.customer?.phone || '—')})`,
-      meta: it
-    }))
-    return { results, count: resp.data.count, next: resp.data.next }
-  }
-
-  const fetchInvoicesCB = async ({ search = '', page = 1 }: { search: string; page: number }) => {
-    const resp = await api.get('/admin/invoices/', { params: { search, page, page_size: 10, ordering: '-created_at' } })
-    const arr = resp.data.results || resp.data || []
-    const results = arr.map((inv: any) => {
-      const custName = inv.issue?.customer?.name ? titleCase(inv.issue.customer.name) : (inv.issue?.customer?.phone || '—')
-      return { id: inv.id, label: `Invoice #${inv.id} — Issue #${inv.issue?.id} (${custName})`, meta: inv }
-    })
-    return { results, count: resp.data.count, next: resp.data.next }
-  }
-
-  const fetchBrandsCB = async ({ search = '', page = 1 }: { search: string; page: number }) => {
-    const resp = await api.get('/brands/', { params: { search, page, page_size: 10 } })
-    const arr = resp.data.results || resp.data || []
-    const results = arr.map((b: any) => ({ id: b.id, label: titleCase(b.name), meta: b }))
-    return { results, count: resp.data.count, next: resp.data.next }
-  }
-
-  const fetchModelsByBrand = async (brandId: number | string | null) => {
-    if (!brandId) return []
-    try {
-      const resp = await api.get('/vehicle-models/', { params: { brand: brandId, page_size: 50 } })
-      // Normalize names to title case for display in select
-      const data = resp.data.results || resp.data || []
-      return data.map((m: any) => ({ ...m, name: titleCase(m.name) }))
-    } catch (err) {
-      return []
+  // ---------- Fetchers used by tables ----------
+  const fetchAdminList = async (which: string, page: number, search: string) => {
+    const params: any = { page, page_size: pageSize }
+    if (search) params.search = search
+    if (which === 'issues') params.ordering = '-created_at'
+    if (which === 'invoices') params.ordering = '-created_at'
+    let url = ''
+    switch (which) {
+      case 'customers': url = '/admin/customers/'; break
+      case 'vehicles': url = '/admin/vehicles/'; break
+      case 'issues': url = '/admin/issues/'; break
+      case 'invoices': url = '/admin/invoices/'; break
+      default: url = '/admin/customers/'
     }
+    const resp = await api.get(url, { params })
+    return resp.data
   }
 
-  // Fetch vehicles for a customer (used on issue form)
-  const fetchVehiclesForCustomer = async ({ search = '', page = 1, owner }: { search: string; page: number; owner?: string | number }) => {
-    const params: any = { search, page, page_size: 10 }
-    if (owner) params.owner = owner
-    const resp = await api.get('/admin/vehicles/', { params })
-    const results = (resp.data.results || resp.data || []).map((v: any) => {
-      const brand = v.model?.brand?.name ? titleCase(v.model.brand.name) + ' ' : ''
-      const modelName = v.model?.name ? titleCase(v.model.name) : 'Model'
-      return { id: v.id, label: `${brand}${modelName} - ${v.plate_number || 'NO-PLATE'}`, meta: v }
-    })
-    return { results, count: resp.data.count, next: resp.data.next }
-  }
+  // We'll use local fetching (not @tanstack/react-query hooks you already use elsewhere),
+  // but we use useEffect + state to keep behaviour simple and aligned with your UI.
+  const [customersData, setCustomersData] = useState<any>(null)
+  const [customersLoading, setCustomersLoading] = useState(false)
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      setCustomersLoading(true)
+      try {
+        const data = await fetchAdminList('customers', pageState.customers, searchState.customers)
+        if (!cancelled) setCustomersData(data)
+      } catch (err) {
+        if (!cancelled) setCustomersData(null)
+      } finally {
+        if (!cancelled) setCustomersLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [pageState.customers, searchState.customers])
 
-  // issues without invoice for invoice-creation combobox
-  const fetchIssuesWithoutInvoiceCB = async ({ search = '', page = 1 }: { search: string; page: number }) => {
-    const resp = await api.get('/admin/issues/', { params: { search, page, page_size: 10, ordering: '-created_at', has_invoice: 'false' } })
-    const arr = resp.data.results || resp.data || []
-    const results = arr.map((it: any) => ({
-      id: it.id,
-      label: `${it.title ? titleCase(it.title) : '(no title)'} — #${it.id} (${it.customer?.name ? titleCase(it.customer.name) : (it.customer?.phone || '—')})`,
-      meta: it
-    }))
-    return { results, count: resp.data.count, next: resp.data.next }
-  }
+  const [vehiclesData, setVehiclesData] = useState<any>(null)
+  const [vehiclesLoading, setVehiclesLoading] = useState(false)
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      setVehiclesLoading(true)
+      try {
+        const data = await fetchAdminList('vehicles', pageState.vehicles, searchState.vehicles)
+        if (!cancelled) setVehiclesData(data)
+      } catch (err) {
+        if (!cancelled) setVehiclesData(null)
+      } finally {
+        if (!cancelled) setVehiclesLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [pageState.vehicles, searchState.vehicles])
+
+  const [issuesData, setIssuesData] = useState<any>(null)
+  const [issuesLoading, setIssuesLoading] = useState(false)
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      setIssuesLoading(true)
+      try {
+        const data = await fetchAdminList('issues', pageState.issues, searchState.issues)
+        if (!cancelled) setIssuesData(data)
+      } catch (err) {
+        if (!cancelled) setIssuesData(null)
+      } finally {
+        if (!cancelled) setIssuesLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [pageState.issues, searchState.issues])
+
+  const [invoicesData, setInvoicesData] = useState<any>(null)
+  const [invoicesLoading, setInvoicesLoading] = useState(false)
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      setInvoicesLoading(true)
+      try {
+        const data = await fetchAdminList('invoices', pageState.invoices, searchState.invoices)
+        if (!cancelled) setInvoicesData(data)
+      } catch (err) {
+        if (!cancelled) setInvoicesData(null)
+      } finally {
+        if (!cancelled) setInvoicesLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [pageState.invoices, searchState.invoices])
 
   // ---------- Action handlers ----------
   const handleOpenCreateCustomer = () => {
@@ -469,12 +482,14 @@ export default function AdminDashboard(): JSX.Element {
   const handleSubmitCreateCustomer = async () => {
     if (!custName.trim()) { pushToast({ type: 'error', title: 'Validation', message: 'Name required' }); return }
     try {
-      // Optional: send title-cased name to backend if you want uniform storage:
       const payload = { name: titleCase(custName), email: custEmail, phone: custPhone }
       await createCustomer.mutateAsync(payload)
       qc.invalidateQueries(['customers'])
       pushToast({ type: 'success', title: 'Customer created', message: `${titleCase(custName)} added.` })
       setOpenCreateCustomer(false)
+      // refresh customers table
+      setPageState(s => ({ ...s, customers: 1 }))
+      setSearchState(s => ({ ...s, customers: '' }))
     } catch (err: any) {
       pushToast({ type: 'error', title: 'Create failed', message: String(err?.response?.data || err?.message || err) })
     }
@@ -486,16 +501,20 @@ export default function AdminDashboard(): JSX.Element {
     ;(async () => {
       try {
         if (selectedBrand && selectedBrand.id) {
-          const ms = await fetchModelsByBrand(selectedBrand.id)
+          const ms = await (async () => {
+            if (!selectedBrand) return []
+            try {
+              const resp = await api.get('/vehicle-models/', { params: { brand: selectedBrand.id, page_size: 50 } })
+              return resp.data.results || resp.data || []
+            } catch (err) { return [] }
+          })()
           if (!cancelled) setModelsForBrand(ms)
         } else {
           setModelsForBrand([])
           setModelForBrand(null)
         }
       } catch (err) {
-        if (!cancelled) {
-          setModelsForBrand([])
-        }
+        if (!cancelled) setModelsForBrand([])
       }
     })()
     return () => { cancelled = true }
@@ -516,7 +535,6 @@ export default function AdminDashboard(): JSX.Element {
     let createdModelId: number | null = null
 
     try {
-      // create brand if needed
       let brandId: number | string | null = selectedBrand ? selectedBrand.id : null
       if (!brandId && brandCustom) {
         const resp = await api.post('/brands/', { name: titleCase(brandCustom) })
@@ -529,7 +547,6 @@ export default function AdminDashboard(): JSX.Element {
 
       if (typeof brandId === 'string' && /^\d+$/.test(brandId)) brandId = parseInt(brandId, 10)
 
-      // create model if needed
       let modelId: number | string | null = modelForBrand ? modelForBrand.id : null
       if (!modelId && modelCustom) {
         const resp = await api.post('/vehicle-models/', { name: titleCase(modelCustom), brand_id: brandId })
@@ -545,7 +562,6 @@ export default function AdminDashboard(): JSX.Element {
 
       const colorPayload = colorName ? (colorHex ? { name: titleCase(colorName), hex: colorHex } : { name: titleCase(colorName) }) : null
 
-      // send owner_id & model_id (backend expects these)
       if (vehiclePhoto) {
         const fd = new FormData()
         fd.append('owner_id', String(selectedOwner.id))
@@ -566,6 +582,9 @@ export default function AdminDashboard(): JSX.Element {
       qc.invalidateQueries(['vehicles'])
       pushToast({ type: 'success', title: 'Vehicle added', message: `Vehicle registered for ${selectedOwner.label}` })
       setOpenAddVehicle(false)
+      // refresh vehicles table
+      setPageState(s => ({ ...s, vehicles: 1 }))
+      setSearchState(s => ({ ...s, vehicles: '' }))
     } catch (err: any) {
       const backendErr = err?.response?.data
       if (backendErr) {
@@ -574,7 +593,6 @@ export default function AdminDashboard(): JSX.Element {
         pushToast({ type: 'error', title: 'Add vehicle failed', message: String(err?.message || err) })
       }
 
-      // cleanup created objects if any
       try { if (createdModelId) await api.delete(`/vehicle-models/${createdModelId}/`).catch(()=>{}) } catch (_) {}
       try { if (createdBrandId) await api.delete(`/brands/${createdBrandId}/`).catch(()=>{}) } catch (_) {}
     }
@@ -613,6 +631,9 @@ export default function AdminDashboard(): JSX.Element {
       qc.invalidateQueries(['issues'])
       pushToast({ type: 'success', title: 'Issue created', message: `${titleCase(issueTitle)}` })
       setOpenCreateIssue(false)
+      // refresh issues table
+      setPageState(s => ({ ...s, issues: 1 }))
+      setSearchState(s => ({ ...s, issues: '' }))
     } catch (err: any) {
       pushToast({ type: 'error', title: 'Create issue failed', message: String(err?.response?.data || err?.message || err) })
     }
@@ -644,18 +665,14 @@ export default function AdminDashboard(): JSX.Element {
     try {
       setIsCreatingInvoice(true)
 
-      // parse and compute numbers
       const issueIdNum = Number(invoiceIssueSelected.id)
       const service = parseFloat(serviceCharge || '0') || 0
       const totalAmount = Number((issueItemsTotal || 0) + service)
 
-      // IMPORTANT: backend expects issue_id (not issue)
       const payload: any = {
         issue_id: issueIdNum,
         service_charge: service
       }
-
-      // include total if your API supports it (safe to include; backend should ignore extra fields if not used)
       payload.total = totalAmount
 
       const resp = await createInvoice.mutateAsync(payload)
@@ -663,7 +680,6 @@ export default function AdminDashboard(): JSX.Element {
       qc.invalidateQueries(['invoices'])
       pushToast({ type: 'success', title: 'Invoice created', message: `Invoice #${invoiceId} created — Total: ${totalAmount.toFixed(2)}` })
 
-      // attempt PDF download
       try {
         const pdfResp = await api.get(`/invoices/${invoiceId}/pdf/`, { responseType: 'blob' })
         const blob = new Blob([pdfResp.data], { type: 'application/pdf' })
@@ -673,11 +689,11 @@ export default function AdminDashboard(): JSX.Element {
         a.download = `invoice_${invoiceId}.pdf`
         a.click()
         window.URL.revokeObjectURL(url)
-      } catch (e) {
-        // ignore
-      }
-
+      } catch (e) {}
       setOpenCreateInvoice(false)
+      // refresh invoices table
+      setPageState(s => ({ ...s, invoices: 1 }))
+      setSearchState(s => ({ ...s, invoices: '' }))
     } catch (err: any) {
       pushToast({ type: 'error', title: 'Create invoice failed', message: String(err?.response?.data || err?.message || err) })
     } finally { setIsCreatingInvoice(false) }
@@ -699,7 +715,7 @@ export default function AdminDashboard(): JSX.Element {
     }
   }
 
-  // ---------- UI pieces (kept same) ----------
+  // ---------- UI pieces ----------
   const navItems = [
     { key: 'customers' as const, label: 'Customers', icon: Icons.Customer },
     { key: 'vehicles' as const, label: 'Vehicles', icon: Icons.Vehicle },
@@ -709,7 +725,15 @@ export default function AdminDashboard(): JSX.Element {
 
   // preload vehicles for selected issue customer in the Create Issue modal:
   const fetchVehiclesForSelectedCustomer = async ({ search = '', page = 1 }: { search: string; page: number }) => {
-    return await fetchVehiclesForCustomer({ search, page, owner: issueCustomerSelected ? issueCustomerSelected.id : undefined })
+    const params: any = { search, page, page_size: 10 }
+    if (issueCustomerSelected) params.owner = issueCustomerSelected.id
+    const resp = await api.get('/admin/vehicles/', { params })
+    const results = (resp.data.results || resp.data || []).map((v: any) => {
+      const brand = v.model?.brand?.name ? titleCase(v.model.brand.name) + ' ' : ''
+      const modelName = v.model?.name ? titleCase(v.model.name) : 'Model'
+      return { id: v.id, label: `${brand}${modelName} - ${v.plate_number || 'NO-PLATE'}`, meta: v }
+    })
+    return { results, count: resp.data.count, next: resp.data.next }
   }
 
   // linked issues add helper
@@ -724,29 +748,299 @@ export default function AdminDashboard(): JSX.Element {
   const parsedService = parseFloat(serviceCharge || '0') || 0
   const computedInvoiceTotal = (issueItemsTotal || 0) + parsedService
 
+  // ---------- Search handlers with useCallback to prevent re-renders ----------
+  const handleSearchChange = useCallback((tab: keyof typeof searchState, value: string) => {
+    // update state
+    setSearchState(prev => ({ ...prev, [tab]: value }))
+    setPageState(prev => ({ ...prev, [tab]: 1 }))
+
+    // restore focus to the input immediately after state updates to prevent losing focus
+    // (we use requestAnimationFrame to run after React flushes DOM changes)
+    const ref = (searchInputRefs as any)[tab] as React.RefObject<HTMLInputElement>
+    window.requestAnimationFrame(() => {
+      try { ref?.current?.focus() } catch {}
+    })
+  }, [])
+
+  // ---------- NEW: Paginated table components ----------
+  const TableHeader: React.FC<{ title: string; subtitle?: string; actions?: React.ReactNode }> = ({ title, subtitle, actions }) => (
+    <div className="flex items-start justify-between mb-4">
+      <div>
+        <h3 className="text-lg font-semibold mb-1 text-gray-900">{title}</h3>
+        {subtitle && <div className="text-sm text-gray-600">{subtitle}</div>}
+      </div>
+      <div>{actions}</div>
+    </div>
+  )
+
+  const CustomersTable = () => {
+    const data = customersData
+    const loading = customersLoading
+    const page = pageState.customers
+    const search = searchState.customers
+    const total = data?.count || 0
+    const items = data?.results || []
+
+    return (
+      <div className="space-y-4">
+        <TableHeader title="Customers" subtitle="All registered customers" actions={
+          <div className="flex items-center gap-3">
+            <input 
+              ref={searchInputRefs.customers}
+              value={search} 
+              onChange={(e) => handleSearchChange('customers', e.target.value)} 
+              placeholder="Search customers..." 
+              className="px-3 py-2 border border-gray-300 rounded-lg"
+            />
+            <Button variant="primary" onClick={handleOpenCreateCustomer} size="sm">Create</Button>
+          </div>
+        }/>
+        <div className="overflow-x-auto">
+          <table className="w-full table-auto">
+            <thead>
+              <tr className="text-left text-sm text-gray-600">
+                <th className="py-2 pr-4">Name</th>
+                <th className="py-2 pr-4">Phone</th>
+                <th className="py-2 pr-4">Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={3} className="py-8 text-center"><Icons.Loading /> Loading...</td></tr>
+              ) : items.length === 0 ? (
+                <tr><td colSpan={3} className="py-8 text-center text-gray-500">No customers found</td></tr>
+              ) : items.map((c: any) => (
+                <tr key={c.id} className="border-t">
+                  <td className="py-3">{titleCase(c.name)}</td>
+                  <td className="py-3 text-sm text-gray-600">{c.phone || '—'}</td>
+                  <td className="py-3 text-sm text-gray-600">{c.email || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex items-center justify-between pt-4 border-t">
+          <div className="text-sm text-gray-600">Showing {(page-1)*pageSize + 1} to {Math.min(page*pageSize, total)} of {total}</div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setPageState(s => ({ ...s, customers: Math.max(1, s.customers - 1) }))} disabled={page===1} size="sm">Previous</Button>
+            <Button variant="outline" onClick={() => setPageState(s => ({ ...s, customers: s.customers + 1 }))} disabled={items.length < pageSize} size="sm">Next</Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const VehiclesTable = () => {
+    const data = vehiclesData
+    const loading = vehiclesLoading
+    const page = pageState.vehicles
+    const search = searchState.vehicles
+    const total = data?.count || 0
+    const items = data?.results || []
+
+    return (
+      <div className="space-y-4">
+        <TableHeader title="Vehicles" subtitle="All registered vehicles" actions={
+          <div className="flex items-center gap-3">
+            <input 
+              ref={searchInputRefs.vehicles}
+              value={search} 
+              onChange={(e) => handleSearchChange('vehicles', e.target.value)} 
+              placeholder="Search vehicles..." 
+              className="px-3 py-2 border border-gray-300 rounded-lg"
+            />
+            <Button variant="primary" onClick={handleOpenAddVehicle} size="sm">Add Vehicle</Button>
+          </div>
+        }/>
+        <div className="overflow-x-auto">
+          <table className="w-full table-auto">
+            <thead>
+              <tr className="text-left text-sm text-gray-600">
+                <th className="py-2 pr-4">Plate</th>
+                <th className="py-2 pr-4">Model</th>
+                <th className="py-2 pr-4">Owner</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={3} className="py-8 text-center"><Icons.Loading /> Loading...</td></tr>
+              ) : items.length === 0 ? (
+                <tr><td colSpan={3} className="py-8 text-center text-gray-500">No vehicles found</td></tr>
+              ) : items.map((v: any) => (
+                <tr key={v.id} className="border-t">
+                  <td className="py-3 font-mono">{v.plate_number || '—'}</td>
+                  <td className="py-3">{v.model?.brand?.name ? titleCase(v.model.brand.name) + ' ' : ''}{v.model?.name ? titleCase(v.model.name) : 'Model'}</td>
+                  <td className="py-3">{v.owner?.name ? titleCase(v.owner.name) : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex items-center justify-between pt-4 border-t">
+          <div className="text-sm text-gray-600">Showing {(page-1)*pageSize + 1} to {Math.min(page*pageSize, total)} of {total}</div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setPageState(s => ({ ...s, vehicles: Math.max(1, s.vehicles - 1) }))} disabled={page===1} size="sm">Previous</Button>
+            <Button variant="outline" onClick={() => setPageState(s => ({ ...s, vehicles: s.vehicles + 1 }))} disabled={items.length < pageSize} size="sm">Next</Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const IssuesTable = () => {
+    const data = issuesData
+    const loading = issuesLoading
+    const page = pageState.issues
+    const search = searchState.issues
+    const total = data?.count || 0
+    const items = data?.results || []
+
+    return (
+      <div className="space-y-4">
+        <TableHeader title="Issues" subtitle="All reported issues" actions={
+          <div className="flex items-center gap-3">
+            <input 
+              ref={searchInputRefs.issues}
+              value={search} 
+              onChange={(e) => handleSearchChange('issues', e.target.value)} 
+              placeholder="Search issues..." 
+              className="px-3 py-2 border border-gray-300 rounded-lg"
+            />
+            <Button variant="primary" onClick={handleOpenCreateIssue} size="sm">Create Issue</Button>
+          </div>
+        }/>
+        <div className="overflow-x-auto">
+          <table className="w-full table-auto">
+            <thead>
+              <tr className="text-left text-sm text-gray-600">
+                <th className="py-2 pr-4">#</th>
+                <th className="py-2 pr-4">Title</th>
+                <th className="py-2 pr-4">Assigned</th>
+                <th className="py-2 pr-4">Status</th>
+                <th className="py-2 pr-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={5} className="py-8 text-center"><Icons.Loading /> Loading...</td></tr>
+              ) : items.length === 0 ? (
+                <tr><td colSpan={5} className="py-8 text-center text-gray-500">No issues found</td></tr>
+              ) : items.map((it: any) => (
+                <tr key={it.id} className="border-t">
+                  <td className="py-3 font-mono">{it.id}</td>
+                  <td className="py-3 font-medium">{it.title ? titleCase(it.title) : '(no title)'}</td>
+                  <td className="py-3">{it.assigned_to ? (it.assigned_to.full_name || it.assigned_to.registration_number) : '—'}</td>
+                  <td className="py-3">{it.status}</td>
+                  <td className="py-3">
+                    <div className="flex items-center gap-2">
+                      <button className="text-sm text-orange-600 underline" onClick={() => setOpenIssueDetails({ open: true, issue: it })}>Open</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex items-center justify-between pt-4 border-t">
+          <div className="text-sm text-gray-600">Showing {(page-1)*pageSize + 1} to {Math.min(page*pageSize, total)} of {total}</div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setPageState(s => ({ ...s, issues: Math.max(1, s.issues - 1) }))} disabled={page===1} size="sm">Previous</Button>
+            <Button variant="outline" onClick={() => setPageState(s => ({ ...s, issues: s.issues + 1 }))} disabled={items.length < pageSize} size="sm">Next</Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const InvoicesTable = () => {
+    const data = invoicesData
+    const loading = invoicesLoading
+    const page = pageState.invoices
+    const search = searchState.invoices
+    const total = data?.count || 0
+    const items = data?.results || []
+
+    return (
+      <div className="space-y-4">
+        <TableHeader title="Invoices" subtitle="All invoices" actions={
+          <div className="flex items-center gap-3">
+            <input 
+              ref={searchInputRefs.invoices}
+              value={search} 
+              onChange={(e) => handleSearchChange('invoices', e.target.value)} 
+              placeholder="Search invoices..." 
+              className="px-3 py-2 border border-gray-300 rounded-lg"
+            />
+            <Button variant="primary" onClick={handleOpenCreateInvoice} size="sm">Create Invoice</Button>
+          </div>
+        }/>
+        <div className="overflow-x-auto">
+          <table className="w-full table-auto">
+            <thead>
+              <tr className="text-left text-sm text-gray-600">
+                <th className="py-2 pr-4">#</th>
+                <th className="py-2 pr-4">Issue</th>
+                <th className="py-2 pr-4">Total</th>
+                <th className="py-2 pr-4">Created</th>
+                <th className="py-2 pr-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={5} className="py-8 text-center"><Icons.Loading /> Loading...</td></tr>
+              ) : items.length === 0 ? (
+                <tr><td colSpan={5} className="py-8 text-center text-gray-500">No invoices found</td></tr>
+              ) : items.map((inv: any) => {
+                return (
+                  <tr key={inv.id} className="border-t">
+                    <td className="py-3 font-mono">{inv.id}</td>
+                    <td className="py-3">Issue #{inv.issue?.id || '—'}</td>
+                    <td className="py-3">${Number(inv.total || inv.amount || 0).toFixed(2)}</td>
+                    <td className="py-3 text-sm text-gray-600">{new Date(inv.created_at).toLocaleString()}</td>
+                    <td className="py-3">
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" onClick={() => handleDownloadInvoicePdf(inv.id)}>Reprint</Button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex items-center justify-between pt-4 border-t">
+          <div className="text-sm text-gray-600">Showing {(page-1)*pageSize + 1} to {Math.min(page*pageSize, total)} of {total}</div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setPageState(s => ({ ...s, invoices: Math.max(1, s.invoices - 1) }))} disabled={page===1} size="sm">Previous</Button>
+            <Button variant="outline" onClick={() => setPageState(s => ({ ...s, invoices: s.invoices + 1 }))} disabled={items.length < pageSize} size="sm">Next</Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-screen bg-orange-50">
       {/* Mobile Overlay */}
       {mobileOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
-      {/* Sidebar - Hidden on mobile, shown when mobileOpen is true */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-80 bg-gradient-to-b from-orange-900 to-orange-800 text-white p-6 flex flex-col transform transition-transform duration-300 ease-in-out ${
-        mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      }`}>
+      {/* Sidebar */}
+      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-80 bg-gradient-to-b from-orange-900 to-orange-800 text-white p-6 flex flex-col transform transition-transform duration-300 ease-in-out ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold">RK Autos</h1>
             <p className="text-orange-200 text-sm mt-1">Admin Dashboard</p>
           </div>
-          <button 
-            className="lg:hidden p-2"
-            onClick={() => setMobileOpen(false)}
-          >
+          <button className="lg:hidden p-2" onClick={() => setMobileOpen(false)}>
             <Icons.Close className="w-6 h-6" />
           </button>
         </div>
@@ -768,9 +1062,7 @@ export default function AdminDashboard(): JSX.Element {
               const Icon = item.icon
               return (
                 <button key={item.key} onClick={() => { setTab(item.key); setMobileOpen(false) }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                    tab === item.key ? 'bg-white text-orange-700 shadow-lg' : 'text-orange-100 hover:bg-orange-700 hover:text-white'
-                  }`}>
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${tab === item.key ? 'bg-white text-orange-700 shadow-lg' : 'text-orange-100 hover:bg-orange-700 hover:text-white'}`}>
                   <Icon />
                   <span className="font-medium">{item.label}</span>
                 </button>
@@ -788,13 +1080,10 @@ export default function AdminDashboard(): JSX.Element {
 
       <main className="flex-1 p-4 lg:p-8 overflow-auto">
         <div className="max-w-6xl mx-auto">
-          {/* Header with Hamburger */}
+          {/* Header */}
           <div className="mb-6 lg:mb-8 flex items-start justify-between">
             <div className="flex items-center gap-4">
-              <button 
-                className="lg:hidden p-2 bg-orange-500 text-white rounded-lg"
-                onClick={() => setMobileOpen(true)}
-              >
+              <button className="lg:hidden p-2 bg-orange-500 text-white rounded-lg" onClick={() => setMobileOpen(true)}>
                 <Icons.Menu className="w-6 h-6" />
               </button>
               <div>
@@ -825,72 +1114,40 @@ export default function AdminDashboard(): JSX.Element {
                   <div className="text-sm text-orange-700">Administrator</div>
                 </div>
               )}
-
-              {tab === 'customers' && <Button variant="primary" onClick={handleOpenCreateCustomer} size="sm" className="text-sm">Create Customer</Button>}
-              {tab === 'vehicles' && <Button variant="primary" onClick={handleOpenAddVehicle} size="sm" className="text-sm">Add Vehicle</Button>}
-              {tab === 'issues' && <Button variant="primary" onClick={handleOpenCreateIssue} size="sm" className="text-sm">Create Issue</Button>}
-              {tab === 'invoices' && <Button variant="primary" onClick={handleOpenCreateInvoice} size="sm" className="text-sm">Create Invoice</Button>}
             </div>
           </div>
 
-          {/* Tab contents with white background */}
+          {/* Tab contents (REPLACED: paginated tables) */}
           <div>
             {tab === 'customers' && (
               <Card className="p-4 lg:p-6 min-h-[500px] lg:min-h-[700px]">
-                <h3 className="text-lg font-semibold mb-4 text-gray-900">Search Customers</h3>
-                <Combobox
-                  placeholder="Search by name, phone or email..."
-                  fetcher={({ search, page }) => fetchCustomersCB({ search, page })}
-                  onSelect={(it) => { if (it) pushToast({ type: 'info', title: 'Customer selected', message: it.label }) }}
-                  renderItem={(it) => <div className="flex justify-between"><div>{it.label}</div></div>}
-                />
-                <div className="mt-6 text-sm text-gray-600">Tip: type name or phone to find a customer.</div>
+                <CustomersTable />
               </Card>
             )}
 
             {tab === 'vehicles' && (
               <Card className="p-4 lg:p-6 min-h-[500px] lg:min-h-[700px]">
-                <h3 className="text-lg font-semibold mb-4 text-gray-900">Search Vehicles</h3>
-                <Combobox
-                  placeholder="Search by model, owner or plate..."
-                  fetcher={({ search, page }) => fetchVehiclesCB({ search, page })}
-                  onSelect={(it) => { if (it) pushToast({ type: 'info', title: 'Vehicle selected', message: String(it.label) }) }}
-                  renderItem={(it) => <div className="flex items-center gap-3"><div>{it.label}</div></div>}
-                />
-                <div className="mt-6 text-sm text-gray-600">Tip: search by plate, owner name or model.</div>
+                <VehiclesTable />
               </Card>
             )}
 
             {tab === 'issues' && (
               <Card className="p-4 lg:p-6 min-h-[500px] lg:min-h-[700px]">
-                <h3 className="text-lg font-semibold mb-4 text-gray-900">Search Issues</h3>
-                <Combobox
-                  placeholder="Search by user name, phone or issue title..."
-                  fetcher={({ search, page }) => fetchIssuesCB({ search, page })}
-                  onSelect={(it) => { if (it) setOpenIssueDetails({ open: true, issue: it.meta }) }}
-                  renderItem={(it) => <div><div className="font-medium">{it.meta.title ? titleCase(it.meta.title) : '(no title)'} <span className="text-xs text-gray-500">#{it.id}</span></div><div className="text-xs text-gray-500">{it.meta.customer?.name ? titleCase(it.meta.customer?.name) : ''} • {new Date(it.meta.created_at).toLocaleString()}</div></div>}
-                />
-                <div className="mt-6 text-sm text-gray-600">Tip: recent issues appear first.</div>
+                <IssuesTable />
               </Card>
             )}
 
             {tab === 'invoices' && (
               <Card className="p-4 lg:p-6 min-h-[500px] lg:min-h-[700px]">
-                <h3 className="text-lg font-semibold mb-4 text-gray-900">Search Invoices</h3>
-                <Combobox
-                  placeholder="Search by invoice number, issue number or user name..."
-                  fetcher={({ search, page }) => fetchInvoicesCB({ search, page })}
-                  onSelect={(it) => { if (it) pushToast({ type: 'info', title: 'Invoice selected', message: it.label }) }}
-                  renderItem={(it) => <div className="flex justify-between items-center"><div>{it.label}</div><div><Button variant="outline" onClick={() => handleDownloadInvoicePdf(it.id)}>Reprint</Button></div></div>}
-                />
-                <div className="mt-6 text-sm text-gray-600">Tip: search by username or issue number to list invoices for that user.</div>
+                <InvoicesTable />
               </Card>
             )}
           </div>
         </div>
       </main>
 
-      {/* Modals remain the same */}
+      {/* Modals (unchanged) */}
+
       {/* Create Customer Modal */}
       <Modal open={openCreateCustomer} onClose={() => setOpenCreateCustomer(false)} title="Create Customer">
         <div className="space-y-4">
@@ -911,7 +1168,11 @@ export default function AdminDashboard(): JSX.Element {
             <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle Owner</label>
             <Combobox
               placeholder="Search owner by name or phone..."
-              fetcher={({ search, page }) => fetchCustomersCB({ search, page })}
+              fetcher={({ search, page }) => (async () => {
+                const resp = await api.get('/admin/customers/', { params: { search, page, page_size: 10 } })
+                const arr = resp.data.results || resp.data || []
+                return { results: arr.map((c:any)=>({ id: c.id, label: `${titleCase(c.name)} (${c.phone || 'no phone'})`, meta: c })), count: resp.data.count, next: resp.data.next }
+              })()}
               onSelect={(it) => setSelectedOwner(it ? { id: String(it.id), label: it.label } : null)}
               renderItem={(it) => <div>{it.label} <div className="text-xs text-gray-500">ID: {it.id}</div></div>}
             />
@@ -922,7 +1183,11 @@ export default function AdminDashboard(): JSX.Element {
               <label className="block text-sm font-medium text-gray-700 mb-2">Brand</label>
               <Combobox
                 placeholder="Select existing brand or type new..."
-                fetcher={({ search, page }) => fetchBrandsCB({ search, page })}
+                fetcher={({ search, page }) => (async () => {
+                  const resp = await api.get('/brands/', { params: { search, page, page_size: 10 } })
+                  const arr = resp.data.results || resp.data || []
+                  return { results: arr.map((b:any)=>({ id: b.id, label: titleCase(b.name), meta: b })), count: resp.data.count, next: resp.data.next }
+                })()}
                 onSelect={(it) => {
                   if (it) {
                     setSelectedBrand({ id: String(it.id), label: it.label })
@@ -998,7 +1263,12 @@ export default function AdminDashboard(): JSX.Element {
             <label className="block text-sm font-medium text-gray-700 mb-2">Customer</label>
             <Combobox
               placeholder="Search customer..."
-              fetcher={({ search, page }) => fetchCustomersCB({ search, page })}
+              fetcher={({ search, page }) => (async () => {
+                const resp = await api.get('/admin/customers/', { params: { search, page, page_size: 10 } })
+                const arr = resp.data.results || resp.data || []
+                const results = arr.map((c:any) => ({ id: c.id, label: `${titleCase(c.name)} (${c.phone || 'no phone'})`, meta: c }))
+                return { results, count: resp.data.count, next: resp.data.next }
+              })()}
               onSelect={(it) => {
                 setIssueCustomerSelected(it ? { id: String(it.id), label: it.label } : null)
                 setIssueVehicleSelected(null)
@@ -1033,9 +1303,12 @@ export default function AdminDashboard(): JSX.Element {
               <label className="block text-sm font-medium text-gray-700 mb-1">Assign Technician</label>
               <select value={issueTech || ''} onChange={(e)=>setIssueTech(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
                 <option value="">Select technician</option>
-                {technicians.map((t:any)=>((
-                  <option key={t.id} value={t.id}>{titleCase(t.full_name) || t.registration_number || t.email}</option>
-                )))}
+                {technicians.map((t:any)=>(
+
+                  <option key={t.id} value={t.id}>
+                    {titleCase(t.full_name) || t.registration_number || t.email} — {t.status || 'available'}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -1062,7 +1335,12 @@ export default function AdminDashboard(): JSX.Element {
               <div>
                 <Combobox
                   placeholder="Search existing issues..."
-                  fetcher={({ search, page }) => fetchIssuesCB({ search, page })}
+                  fetcher={({ search, page }) => (async () => {
+                    const resp = await api.get('/admin/issues/', { params: { search, page, page_size: 10, ordering: '-created_at' } })
+                    const arr = resp.data.results || resp.data || []
+                    const results = arr.map((it:any) => ({ id: it.id, label: `${it.title ? titleCase(it.title) : '(no title)'} — #${it.id}`, meta: it }))
+                    return { results, count: resp.data.count, next: resp.data.next }
+                  })()}
                   onSelect={(it) => addLinkedIssue(it)}
                   renderItem={(it) => <div>{it.label}</div>}
                 />
@@ -1070,9 +1348,9 @@ export default function AdminDashboard(): JSX.Element {
               <div>
                 <div className="flex flex-wrap gap-2">
                   {linkedIssues.map(li => (
-                    <div key={String(li.id)} className="inline-flex items-center gap-2 px-3 py-1 rounded bg-gray-100 border">
-                      <span className="text-xs">{li.label}</span>
-                      <button className="text-xs text-red-500" onClick={()=>removeLinkedIssue(li.id)}>x</button>
+                    <div key={li.id} className="px-2 py-1 bg-gray-100 rounded-full text-sm flex items-center gap-2">
+                      <span>{li.label}</span>
+                      <button onClick={() => removeLinkedIssue(li.id)} className="text-xs text-gray-500">x</button>
                     </div>
                   ))}
                 </div>
@@ -1080,85 +1358,52 @@ export default function AdminDashboard(): JSX.Element {
             </div>
           </div>
 
-          <div className="flex gap-3 pt-3">
+          <div className="flex gap-3 pt-3 border-t">
             <Button variant="primary" onClick={handleCreateIssueSubmit} loading={createIssue.isLoading}>Create Issue</Button>
-            <Button variant="outline" onClick={()=>setOpenCreateIssue(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setOpenCreateIssue(false)}>Cancel</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Create Invoice Modal */}
+      <Modal open={openCreateInvoice} onClose={() => setOpenCreateInvoice(false)} title="Create Invoice" size="lg">
+        <div className="space-y-4 max-h-[70vh] overflow-auto pr-2">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Issue</label>
+            <Combobox
+              placeholder="Search issue..."
+              fetcher={({ search, page }) => (async () => {
+                const resp = await api.get('/admin/issues/', { params: { search, page, page_size: 10, ordering: '-created_at' } })
+                const arr = resp.data.results || resp.data || []
+                const results = arr.map((it:any) => ({ id: it.id, label: `${it.title ? titleCase(it.title) : '(no title)'} — #${it.id}`, meta: it }))
+                return { results, count: resp.data.count, next: resp.data.next }
+              })()}
+              onSelect={(it) => setInvoiceIssueSelected(it ? { id: String(it.id), label: it.label, meta: it.meta } : null)}
+              renderItem={(it) => <div>{it.label}</div>}
+            />
+          </div>
+
+          <div>
+            <Input label="Service charge (optional)" value={serviceCharge} onChange={setServiceCharge} placeholder="0.00" />
+            <div className="mt-2 text-sm">Items total: ${Number(issueItemsTotal || 0).toFixed(2)}</div>
+            <div className="mt-1 text-lg font-semibold">Total: ${Number(computedInvoiceTotal || 0).toFixed(2)}</div>
+          </div>
+
+          <div className="flex gap-3 pt-3 border-t">
+            <Button variant="primary" onClick={handleCreateInvoiceSubmit} loading={isCreatingInvoice}>Create Invoice</Button>
+            <Button variant="outline" onClick={() => setOpenCreateInvoice(false)}>Cancel</Button>
           </div>
         </div>
       </Modal>
 
       {/* Issue Details Modal */}
       <Modal open={openIssueDetails.open} onClose={() => setOpenIssueDetails({ open: false })} title={`Issue #${openIssueDetails.issue?.id || ''}`} size="lg">
-        <div className="space-y-4 max-h-[70vh] overflow-auto pr-2">
-          {openIssueDetails.issue ? (
-            <>
-              <div className="text-sm text-gray-600">Title: <strong>{titleCase(openIssueDetails.issue.title)}</strong></div>
-              <div className="text-sm text-gray-600">Status: <strong>{openIssueDetails.issue.status}</strong></div>
-              <div className="text-sm text-gray-600">Assigned to: <strong>{titleCase(openIssueDetails.issue.assigned_to?.full_name) || openIssueDetails.issue.assigned_to?.registration_number || '—'}</strong></div>
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-1">Description</h4>
-                <div className="text-sm text-gray-600 bg-gray-50 rounded p-3">{openIssueDetails.issue.description}</div>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-1">Treatments</h4>
-                <div className="space-y-2">
-                  {(openIssueDetails.issue.treatments || []).map((t:any)=>((
-                    <div key={t.id} className="p-2 border rounded bg-white">
-                      <div className="text-xs text-gray-500">By: {titleCase(t.technician?.full_name) || '—'} • {new Date(t.created_at).toLocaleString()}</div>
-                      <div className="text-sm">{t.description}</div>
-                    </div>
-                  )))}
-                  {(!openIssueDetails.issue.treatments || openIssueDetails.issue.treatments.length===0) && <div className="text-sm text-gray-500">No treatments yet.</div>}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-1">Items</h4>
-                <div className="space-y-2">
-                  {(openIssueDetails.issue.items || []).map((it:any)=>((
-                    <div key={it.id} className="p-2 border rounded bg-white flex justify-between">
-                      <div className="text-sm">{titleCase(it.name)}</div>
-                      <div className="text-sm font-medium">{it.amount}</div>
-                    </div>
-                  )))}
-                  {(!openIssueDetails.issue.items || openIssueDetails.issue.items.length===0) && <div className="text-sm text-gray-500">No items yet.</div>}
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-3">
-                <Button variant="outline" onClick={()=>setOpenIssueDetails({ open:false })}>Close</Button>
-              </div>
-            </>
-          ) : (
-            <div className="text-center text-gray-600">No issue selected</div>
-          )}
-        </div>
-      </Modal>
-
-      {/* Create Invoice Modal */}
-      <Modal open={openCreateInvoice} onClose={() => setOpenCreateInvoice(false)} title="Create Invoice">
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Issue (without invoice)</label>
-            <Combobox
-              placeholder="Search issues without invoice..."
-              fetcher={({ search, page }) => fetchIssuesWithoutInvoiceCB({ search, page })}
-              onSelect={(it) => setInvoiceIssueSelected(it ? { id: it.id as any, label: it.label, meta: it.meta } : null)}
-              renderItem={(it) => <div>{it.label}</div>}
-            />
-            {invoiceIssueSelected && <div className="mt-2 text-xs text-gray-600">Selected: <strong>{invoiceIssueSelected.label}</strong></div>}
-          </div>
-
-          <div>
-            <Input label="Service charge" value={serviceCharge} onChange={setServiceCharge} placeholder="0.00" />
-            <div className="text-xs text-gray-500 mt-1">Items total: {issueItemsTotal.toFixed(2)}</div>
-            <div className="text-sm font-medium mt-2">Total (items + service): {computedInvoiceTotal.toFixed(2)}</div>
-          </div>
-
+          <div><strong>Title:</strong> {openIssueDetails.issue?.title}</div>
+          <div><strong>Description:</strong> <div className="whitespace-pre-wrap">{openIssueDetails.issue?.description}</div></div>
+          <div><strong>Assigned:</strong> {openIssueDetails.issue?.assigned_to?.full_name || '—'}</div>
           <div className="flex gap-3 pt-3">
-            <Button variant="primary" onClick={handleCreateInvoiceSubmit} loading={isCreatingInvoice}>Create Invoice</Button>
-            <Button variant="outline" onClick={()=>setOpenCreateInvoice(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setOpenIssueDetails({ open: false })}>Close</Button>
           </div>
         </div>
       </Modal>
