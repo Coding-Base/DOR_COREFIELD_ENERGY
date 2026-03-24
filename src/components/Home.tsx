@@ -425,6 +425,7 @@ export default function Home() {
               <Link to="/about" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">About</Link>
               <Link to="/contact" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">Contact</Link>
               <Link to="/privacy" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">Privacy</Link>
+              <Link to="/profile" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">Profile</Link>
             </div>
 
             {/* Mobile Menu Button */}
@@ -480,6 +481,13 @@ export default function Home() {
                     onClick={handleNavClick}
                   >
                     Privacy
+                  </Link>
+                  <Link 
+                    to="/profile" 
+                    className="text-gray-700 hover:text-primary font-medium transition-colors py-2 text-sm"
+                    onClick={handleNavClick}
+                  >
+                    Profile
                   </Link>
                   <button className="bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-xl hover:opacity-95 transition-all duration-300 font-medium w-full text-center text-sm">
                     Request Support
