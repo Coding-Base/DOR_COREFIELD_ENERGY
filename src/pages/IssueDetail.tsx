@@ -1,24 +1,26 @@
 // src/pages/IssueDetail.tsx
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../api/client'
 import Modal from '../components/Modal'
 
 // Icons for professional automotive interface
-const Icons = {
-  Vehicle: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>,
-  Wrench: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
-  Calendar: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
-  User: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
-  Photo: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
-  Download: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
-  Plus: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>,
-  Loading: () => <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>,
-  External: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>,
-  Email: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
-  Phone: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>,
-  ArrowLeft: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>,
+const Icons: Record<string, any> = {
+  Vehicle: (props: any) => <svg {...props} className={`w-5 h-5 ${props?.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>,
+  Wrench: (props: any) => <svg {...props} className={`w-5 h-5 ${props?.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
+  Calendar: (props: any) => <svg {...props} className={`w-5 h-5 ${props?.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
+  User: (props: any) => <svg {...props} className={`w-5 h-5 ${props?.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
+  Photo: (props: any) => <svg {...props} className={`w-5 h-5 ${props?.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
+  Download: (props: any) => <svg {...props} className={`w-5 h-5 ${props?.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
+  Plus: (props: any) => <svg {...props} className={`w-5 h-5 ${props?.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>,
+  Loading: (props: any) => <svg {...props} className={`animate-spin h-5 w-5 ${props?.className || ''}`} fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>,
+  External: (props: any) => <svg {...props} className={`w-4 h-4 ${props?.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>,
+  Email: (props: any) => <svg {...props} className={`w-4 h-4 ${props?.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
+  Phone: (props: any) => <svg {...props} className={`w-4 h-4 ${props?.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>,
+  ArrowLeft: (props: any) => <svg {...props} className={`w-5 h-5 ${props?.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>,
+  ClipboardList: (props: any) => <svg {...props} className={`w-5 h-5 ${props?.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>,
+  DocumentText: (props: any) => <svg {...props} className={`w-5 h-5 ${props?.className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>,
 }
 
 // Professional Card Component
@@ -33,6 +35,7 @@ const Button: React.FC<{
   children: React.ReactNode;
   variant?: 'primary' | 'secondary' | 'outline';
   loading?: boolean;
+
   disabled?: boolean;
   onClick?: () => void;
   className?: string;
@@ -191,6 +194,7 @@ export default function IssueDetail() {
   const [treatmentText, setTreatmentText] = useState('')
   const [itemName, setItemName] = useState('')
   const [itemAmount, setItemAmount] = useState('')
+
   const [itemQuantity, setItemQuantity] = useState('1')
   const [recText, setRecText] = useState('')
 
@@ -205,7 +209,50 @@ export default function IssueDetail() {
     }
   }, [issueIsError, issueError, navigate])
 
+  //Check if the user is admin
+  const isAdmin = localStorage.getItem('role') === 'admin';
+
+  // New State For Tab
+  const [activeTab, setActiveTab] = useState<'treatments' | 'items' | 'recommendations'>('treatments');
+
+  const handleTabChange = (tab: 'treatments' | 'items' | 'recommendations') => {
+    setActiveTab(tab);
+  };
+
   const isLoading = issueLoading || vehicleLoading || customerLoading || modelLoading
+
+  // small util to format ISO dates
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return 'Unknown'
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    } catch {
+      return String(dateString)
+    }
+  }
+
+  // helper getters used in JSX (keeps parity with TechnicianDashboard helpers)
+  const getVehicleModel = () => vehicleModel?.name || 'N/A'
+  const getVehiclePlate = () => vehicle?.plate_number || 'N/A'
+  const getVehicleColor = () => {
+    try {
+      const c = vehicle?.color
+      if (!c) return 'N/A'
+      if (String(c).trim().startsWith('{')) {
+        const parsed = JSON.parse(String(c))
+        return parsed.name || String(c)
+      }
+      return c
+    } catch {
+      return vehicle?.color || 'N/A'
+    }
+  }
+  const getCustomerName = () => customer?.name || 'N/A'
+  const getCustomerEmail = () => customer?.email || 'N/A'
+  const getCustomerPhone = () => customer?.phone || 'N/A'
+
+  // derive vehicle photo url safely
+  const vehiclePhotoUrl = vehicle?.photo ? (vehicle.photo.startsWith('http') ? vehicle.photo : `${import.meta.env.VITE_API_BASE?.replace(/\/api\/?$/, '') || ''}${vehicle.photo}`) : null
 
   // unified go-back handler that checks for techId param
   const handleGoBack = () => {
@@ -214,104 +261,6 @@ export default function IssueDetail() {
     } else {
       navigate('/login')
     }
-  }
-
-  if (isLoading) return (
-    <div className="min-h-screen bg-orange-50 flex items-center justify-center">
-      <div className="text-center">
-        <Icons.Loading />
-        <p className="mt-2 text-orange-700">Loading issue details...</p>
-      </div>
-    </div>
-  )
-
-  if (!issue) return (
-    <div className="min-h-screen bg-orange-50 flex items-center justify-center">
-      <div className="text-center">
-        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Icons.Vehicle />
-        </div>
-        <h2 className="text-xl font-semibold text-orange-900 mb-2">Issue Not Found</h2>
-        <p className="text-orange-700">The requested issue could not be found.</p>
-      </div>
-    </div>
-  )
-
-  /**
-   * Build a usable image URL from the `photo` value the API returns.
-   */
-  const buildImageUrl = (photo: any) => {
-    if (!photo) return null
-    if (typeof photo === 'string' && (photo.startsWith('http://') || photo.startsWith('https://'))) {
-      return photo
-    }
-    if (typeof photo === 'object' && photo !== null && typeof photo.url === 'string') {
-      const u = photo.url
-      if (u.startsWith('http://') || u.startsWith('https://')) return u
-      if (u.startsWith('/')) {
-        const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
-        return `${API_BASE}${u}`
-      }
-      const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
-      return `${API_BASE}/media/${u}`
-    }
-    if (typeof photo === 'string') {
-      if (photo.startsWith('/')) {
-        const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
-        return `${API_BASE}${photo}`
-      }
-      const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
-      return `${API_BASE}/media/${photo}`
-    }
-    return null
-  }
-
-  const vehiclePhotoUrl = buildImageUrl(vehicle?.photo)
-
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return ''
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
-  // Helper functions to safely access data
-  const getVehicleModel = () => {
-    return vehicleModel?.name || 'N/A'
-  }
-
-  const getVehicleColor = () => {
-    try {
-      const color = vehicle?.color
-      if (!color) return 'N/A'
-      if (typeof color === 'string' && color.startsWith('{')) {
-        const parsed = JSON.parse(color)
-        return parsed.name || color
-      }
-      return color
-    } catch {
-      return vehicle?.color || 'N/A'
-    }
-  }
-
-  const getVehiclePlate = () => {
-    return vehicle?.plate_number || 'N/A'
-  }
-
-  const getCustomerName = () => {
-    return customer?.name || 'N/A'
-  }
-
-  const getCustomerEmail = () => {
-    return customer?.email || 'N/A'
-  }
-
-  const getCustomerPhone = () => {
-    return customer?.phone || 'N/A'
   }
 
   // Handler to add item (with quantity)
@@ -371,14 +320,27 @@ export default function IssueDetail() {
                 ← Go back to Technician Dashboard
               </Button>
 
-              <button
-                onClick={handleGoBack}
-                className="inline-flex lg:hidden items-center gap-2 px-3 py-2 border border-orange-200 rounded-lg text-sm text-orange-700 bg-white hover:bg-orange-50"
-                aria-label="Go back to Technician Dashboard"
-              >
-                ← Dashboard
-              </button>
             </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <button
+              className={`px-4 py-2 rounded-lg transition-colors duration-200 text-sm font-medium ${activeTab === 'treatments' ? 'bg-orange-500 text-white' : 'bg-orange-100 text-orange-600 hover:bg-orange-200'}`}
+              onClick={() => handleTabChange('treatments')}
+            >
+              Treatment
+            </button>
+            <button
+              className={`px-4 py-2 rounded-lg transition-colors duration-200 text-sm font-medium ${activeTab === 'items' ? 'bg-orange-500 text-white' : 'bg-orange-100 text-orange-600 hover:bg-orange-200'}`}
+              onClick={() => handleTabChange('items')}
+            >
+              Items/Parts
+            </button>
+            <button
+              className={`px-4 py-2 rounded-lg transition-colors duration-200 text-sm font-medium ${activeTab === 'recommendations' ? 'bg-orange-500 text-white' : 'bg-orange-100 text-orange-600 hover:bg-orange-200'}`}
+              onClick={() => handleTabChange('recommendations')}
+            >
+              Recommendations
+            </button>
           </div>
         </div>
       </div>
@@ -543,6 +505,7 @@ export default function IssueDetail() {
             {/* Quick Actions Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
               {/* Add Treatment */}
+              {activeTab === 'treatments' && (
               <Card className="p-4 lg:p-6">
                 <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Icons.Wrench />
@@ -571,8 +534,10 @@ export default function IssueDetail() {
                   Add Treatment
                 </Button>
               </Card>
+              )}
 
               {/* Add Item (now with quantity) */}
+              {activeTab === 'items' && (
               <Card className="p-4 lg:p-6">
                 <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Icons.Plus />
@@ -610,8 +575,10 @@ export default function IssueDetail() {
                   Add Item
                 </Button>
               </Card>
+              )}
 
               {/* Add Recommendation */}
+              {activeTab === 'recommendations' && (
               <Card className="p-4 lg:p-6">
                 <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Icons.External />
@@ -640,12 +607,14 @@ export default function IssueDetail() {
                   Add Recommendation
                 </Button>
               </Card>
+              )}
             </div>
           </div>
 
           {/* Right Column - Activity & Details */}
           <div className="space-y-6">
             {/* Treatments */}
+            {activeTab === 'treatments' && (
             <Card className="p-4 lg:p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Treatments ({issue.treatments?.length || 0})</h3>
               <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -665,8 +634,10 @@ export default function IssueDetail() {
                 )}
               </div>
             </Card>
+            )}
 
             {/* Items */}
+            {activeTab === 'items' && (
             <Card className="p-4 lg:p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Parts & Items ({issue.items?.length || 0})</h3>
               <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -690,8 +661,10 @@ export default function IssueDetail() {
                 )}
               </div>
             </Card>
+            )}
 
             {/* Recommendations */}
+            {activeTab === 'recommendations' && (
             <Card className="p-4 lg:p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Recommendations ({issue.recommendations?.length || 0})</h3>
               <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -711,6 +684,7 @@ export default function IssueDetail() {
                 )}
               </div>
             </Card>
+            )}
           </div>
         </div>
       </div>
@@ -756,5 +730,3 @@ export default function IssueDetail() {
     </div>
   )
 }
-
-

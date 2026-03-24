@@ -135,15 +135,16 @@ export default function Privacy() {
                 />
               </div>
               <div>
-                <div className="text-xl font-bold text-gray-900">RK AUTOS</div>
-                <div className="text-xs text-gray-600">Custom Garage</div>
+                <div className="text-xl font-bold text-gray-900">DOJ COREFIELD ENERGY LIMITED</div>
+                <div className="text-xs text-gray-600">Petroleum Services</div>
               </div>
             </Link>
             
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
               <Link to="/" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Home</Link>
-              <Link to="/about" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">About</Link>
+              <Link to="/services" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Services</Link>
+              <Link to="/profiles" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Profiles</Link>
               <Link to="/contact" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contact</Link>
             </div>
 

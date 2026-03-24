@@ -1,4 +1,5 @@
 import axios, { AxiosRequestConfig, AxiosError } from 'axios'
+import type { InternalAxiosRequestConfig } from 'axios'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE || 'http://localhost:8000/api',
@@ -8,8 +9,8 @@ const api = axios.create({
 const NO_AUTH = [
   '/auth/admin-register/',
   '/auth/technician-register/',
-  '/token/',
-  '/token/refresh/',
+  '/auth/token/',
+  '/auth/token/refresh/',
 ]
 
 // small helper to check url endings
@@ -23,7 +24,7 @@ let isRefreshing = false
 let failedQueue: {
   resolve: (value?: any) => void
   reject: (reason?: any) => void
-  config: AxiosRequestConfig
+  config: InternalAxiosRequestConfig
 }[] = []
 
 const processQueue = (error: any, token: string | null = null) => {
@@ -38,7 +39,7 @@ const processQueue = (error: any, token: string | null = null) => {
 }
 
 // attach JWT token if present, but respect skipAuth or NO_AUTH
-api.interceptors.request.use((config: AxiosRequestConfig & { skipAuth?: boolean } = {}) => {
+api.interceptors.request.use((config: InternalAxiosRequestConfig & { skipAuth?: boolean } = {} as any) => {
   // If caller explicitly sets skipAuth, do not attach Authorization header
   if (config.skipAuth) return config
 
@@ -83,7 +84,7 @@ api.interceptors.response.use((response) => response, async (error: AxiosError &
   // If already trying to refresh, queue the request
   if (isRefreshing) {
     return new Promise((resolve, reject) => {
-      failedQueue.push({ resolve, reject, config: originalConfig })
+      failedQueue.push({ resolve, reject, config: originalConfig as InternalAxiosRequestConfig })
     })
   }
 
@@ -102,7 +103,7 @@ api.interceptors.response.use((response) => response, async (error: AxiosError &
 
   try {
     // attempt to refresh
-    const resp = await api.post('/token/refresh/', { refresh: refreshToken }, { skipAuth: true })
+    const resp = await api.post('/auth/token/refresh/', { refresh: refreshToken }, { skipAuth: true })
     const newAccess = (resp.data && resp.data.access) ? resp.data.access : null
 
     if (!newAccess) {

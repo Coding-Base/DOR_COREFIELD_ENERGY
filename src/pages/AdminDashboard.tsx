@@ -1,6 +1,7 @@
 // src/pages/AdminDashboard.tsx
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import dayjs from 'dayjs'
 import Modal from '../components/Modal'
 import api from '../api/client'
 import { useQueryClient } from '@tanstack/react-query'
@@ -222,7 +223,7 @@ const Combobox: React.FC<{
                 </div>
               )}
             </>
-          )}
+          )} 
         </div>
       )}
       {selected && valueLabel && (
@@ -263,6 +264,7 @@ const ColorPicker: React.FC<{
     <div className="space-y-3">
       <div className="grid grid-cols-4 gap-2">
         {COMMON_COLORS.map(c => (
+
           <button
             key={c.name}
             type="button"
@@ -298,6 +300,8 @@ export default function AdminDashboard(): JSX.Element {
   const navigate = useNavigate()
   const { push: pushToast, container: ToastContainer } = useToasts()
 
+  // Admin or Technician check
+  const [isAdmin, setIsAdmin] = useState(false);
   const [tab, setTab] = useState<'customers' | 'vehicles' | 'issues' | 'invoices'>('customers')
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -306,6 +310,7 @@ export default function AdminDashboard(): JSX.Element {
   const [openAddVehicle, setOpenAddVehicle] = useState(false)
   const [openCreateIssue, setOpenCreateIssue] = useState(false)
   const [openIssueDetails, setOpenIssueDetails] = useState<{ open: boolean; issue?: any }>({ open: false })
+
   const [openCreateInvoice, setOpenCreateInvoice] = useState(false)
 
   // Admin info
@@ -376,7 +381,10 @@ export default function AdminDashboard(): JSX.Element {
       try {
         const res = await api.get('/auth/me/')
         if (!cancelled && res?.data) setAdminInfo(res.data)
-      } catch (err) { }
+        if(res?.data?.role === 'admin'){
+          setIsAdmin(true)
+        }
+      } catch (err) {console.error("Failed to fetch user info:", err)}
     })()
     return () => { cancelled = true }
   }, [])
@@ -749,18 +757,44 @@ export default function AdminDashboard(): JSX.Element {
   const computedInvoiceTotal = (issueItemsTotal || 0) + parsedService
 
   // ---------- Search handlers with useCallback to prevent re-renders ----------
-  const handleSearchChange = useCallback((tab: keyof typeof searchState, value: string) => {
-    // update state
-    setSearchState(prev => ({ ...prev, [tab]: value }))
-    setPageState(prev => ({ ...prev, [tab]: 1 }))
+  const debounce = (func, delay) => {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), delay);
+    };
+  };
 
-    // restore focus to the input immediately after state updates to prevent losing focus
-    // (we use requestAnimationFrame to run after React flushes DOM changes)
-    const ref = (searchInputRefs as any)[tab] as React.RefObject<HTMLInputElement>
-    window.requestAnimationFrame(() => {
-      try { ref?.current?.focus() } catch {}
-    })
-  }, [])
+  const handleSearchChange = useCallback(
+    debounce((tab, value) => {
+      setSearchState((prev) => ({ ...prev, [tab]: value }))
+      setPageState((prev) => ({ ...prev, [tab]: 1 }))
+
+      // restore focus to the input immediately after state updates to prevent losing focus
+      // (we use requestAnimationFrame to run after React flushes DOM changes)
+      const ref = (searchInputRefs as any)[tab] as React.RefObject<HTMLInputElement>
+      window.requestAnimationFrame(() => {
+        try { ref?.current?.focus() } catch {}
+      })
+    }, 300),
+    []
+  )
+
+  const navigateToIssueDetails = (issueId) => {
+    const role = localStorage.getItem('role');
+    const url = role === 'admin' ? `/issues/${issueId}?role=admin` : `/issues/${issueId}`;
+    navigate(url);
+  };
+
+  useEffect(() => {
+    const checkTokenExpiration = () => {
+      const token = localStorage.getItem('access');
+      if (!token) {
+        navigate('/login');
+      }
+    };
+    checkTokenExpiration();
+  }, [navigate]);
 
   // ---------- NEW: Paginated table components ----------
   const TableHeader: React.FC<{ title: string; subtitle?: string; actions?: React.ReactNode }> = ({ title, subtitle, actions }) => (
@@ -919,6 +953,7 @@ export default function AdminDashboard(): JSX.Element {
                 <th className="py-2 pr-4">Title</th>
                 <th className="py-2 pr-4">Assigned</th>
                 <th className="py-2 pr-4">Status</th>
+                <th className="py-2 pr-4">Created At</th>
                 <th className="py-2 pr-4">Actions</th>
               </tr>
             </thead>
@@ -933,9 +968,13 @@ export default function AdminDashboard(): JSX.Element {
                   <td className="py-3 font-medium">{it.title ? titleCase(it.title) : '(no title)'}</td>
                   <td className="py-3">{it.assigned_to ? (it.assigned_to.full_name || it.assigned_to.registration_number) : '—'}</td>
                   <td className="py-3">{it.status}</td>
+                  <td className="py-3">{dayjs(it.created_at).format("MMMM D, YYYY h:mm A")}</td>
                   <td className="py-3">
                     <div className="flex items-center gap-2">
                       <button className="text-sm text-orange-600 underline" onClick={() => setOpenIssueDetails({ open: true, issue: it })}>Open</button>
+                      <button className="text-sm text-orange-600 underline" onClick={() => navigateToIssueDetails(it.id)}>
+                        Open Details
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -1301,10 +1340,8 @@ export default function AdminDashboard(): JSX.Element {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Assign Technician</label>
-              <select value={issueTech || ''} onChange={(e)=>setIssueTech(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                <option value="">Select technician</option>
-                {technicians.map((t:any)=>(
-
+              <select value={issueTech || ''} onChange={(e) => setIssueTech(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                {technicians.map((t) => (
                   <option key={t.id} value={t.id}>
                     {titleCase(t.full_name) || t.registration_number || t.email} — {t.status || 'available'}
                   </option>
@@ -1317,7 +1354,6 @@ export default function AdminDashboard(): JSX.Element {
               <select value={issueType} onChange={(e)=>setIssueType(e.target.value as any)} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
                 <option value="fixing">Fixing</option>
                 <option value="upgrading">Upgrading</option>
-                <option value="servicing">Servicing</option>
               </select>
             </div>
 

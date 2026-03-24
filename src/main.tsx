@@ -12,9 +12,11 @@ import TechnicianRegister from './pages/TechnicianRegister'
 import AdminRegister from './pages/AdminRegister'
 import HomePage from './components/Home'
 import AboutPage from './components/About'
+import ServicesPage from './components/Services'
+import ProfilePage from './components/Profile'
 import ContactPage from './components/Contact'
 import Privacy from './components/Privacy'
-
+import InvoiceCreate from './pages/InvoiceCreate'
 const queryClient = new QueryClient()
 
 function App() {
@@ -28,6 +30,8 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage/>} />
           <Route path="/about" element={<AboutPage/>} />
+          <Route path="/services" element={<ServicesPage/>} />
+          <Route path="/profiles" element={<ProfilePage/>} />
           <Route path="/contact" element={<ContactPage/>} />
           <Route path="/privacy" element={<Privacy/>} />
           <Route path="/login" element={<Login />} />
@@ -36,6 +40,7 @@ function App() {
           <Route path="/tech/:reg/" element={<TechnicianDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/issues/:id" element={<IssueDetail />} />
+          <Route path="/invoices/create" element={<InvoiceCreate />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
@@ -43,4 +48,3 @@ function App() {
 }
 
 createRoot(document.getElementById('root')!).render(<App />)
-

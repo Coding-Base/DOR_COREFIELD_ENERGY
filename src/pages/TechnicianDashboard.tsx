@@ -324,18 +324,18 @@ export default function TechnicianDashboard() {
       const u = photo.url
       if (u.startsWith('http://') || u.startsWith('https://')) return u
       if (u.startsWith('/')) {
-        const API_BASE = (import.meta.env.VITE_API_BASE as string) || 'http://localhost:8000'
+        const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
         return `${API_BASE}${u}`
       }
-      const API_BASE = (import.meta.env.VITE_API_BASE as string) || 'http://localhost:8000'
+      const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
       return `${API_BASE}/media/${u}`
     }
     if (typeof photo === 'string') {
       if (photo.startsWith('/')) {
-        const API_BASE = (import.meta.env.VITE_API_BASE as string) || 'http://localhost:8000'
+        const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
         return `${API_BASE}${photo}`
       }
-      const API_BASE = (import.meta.env.VITE_API_BASE as string) || 'http://localhost:8000'
+      const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
       return `${API_BASE}/media/${photo}`
     }
     return null
@@ -364,6 +364,17 @@ export default function TechnicianDashboard() {
     })()
     return () => { cancelled = true }
   }, [])
+
+  // Check token expiration and navigate to login if expired
+  useEffect(() => {
+    const checkTokenExpiration = () => {
+      const token = localStorage.getItem('access');
+      if (!token) {
+        navigate('/login');
+      }
+    };
+    checkTokenExpiration();
+  }, [navigate]);
 
   const totalPages = Math.ceil((data?.count || 0) / 10)
 
@@ -441,6 +452,10 @@ export default function TechnicianDashboard() {
     updateStatusMutation.mutate({ id: techInfo.id, status: newStatus })
     setStatusModalOpen(false)
   }
+
+  const navigateToIssue = (issueId: number) => {
+    navigate(`/issues/${issueId}?techId=${techInfo?.id}`);
+  };
 
   return (
     <div className="flex h-screen bg-orange-50">
@@ -656,7 +671,12 @@ export default function TechnicianDashboard() {
               ) : (
                 <>
                   {data?.results?.map((issue: any) => (
-                    <IssueCard key={issue.id} issue={issue} />
+                    <IssueCard
+                      key={issue.id}
+                      issue={issue}
+                      onClick={() => navigateToIssue(issue.id)}
+                      className="p-6"
+                    />
                   ))}
 
                   {/* Pagination */}
