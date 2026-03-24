@@ -1,0 +1,76 @@
+/* Import fonts globally so they apply across the whole app */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@300;400;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* full height */
+html, body, #root { height: 100%; }
+
+/* Global card helper */
+.card { @apply bg-white shadow rounded p-4 }
+
+/* Root font variables */
+:root {
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Base typography */
+body {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #1f2937; /* tailwind gray-800 equivalent for consistency */
+}
+
+/* Headings use the display serif for contrast and elegance */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  margin-top: 0;
+  margin-bottom: .5rem;
+  letter-spacing: -0.02em;
+  color: rgb(255, 255, 255); 
+ 
+}
+
+/* Tweak sizes for better balance with Playfair Display */
+h1 { font-size: 2.25rem; line-height: 1.05; 
+font-weight: 700;
+} /* roughly tailwind text-4xl */
+@media (min-width: 768px) {
+  h1 { font-size: 3rem; } /* md -> text-5xl */
+}
+@media (min-width: 1024px) {
+  h1 { font-size: 3.75rem; } /* lg -> text-6xl */
+}
+
+h2 { font-size: 1.875rem; line-height: 1.12; } /* text-3xl */
+@media (min-width: 768px) {
+  h2 { font-size: 2.25rem; } /* md -> text-4xl */
+}
+
+/* Slightly tighter letter spacing for headings */
+h1, h2 { letter-spacing: -0.03em; }
+
+/* Hero overlay brightness control — reduced so background image is brighter */
+.hero-overlay {
+  background: rgba(0, 0, 0, 0.15); /* previously 0.3, now reduced to brighten image */
+}
+
+/* Ensure hero image renders crisply on large screens */
+.hero-image {
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  image-rendering: auto;
+}
+
+/* Minor utility for better heading appearance on smaller screens */
+@media (max-width: 640px) {
+  h1 { font-weight: 700; }
+}
+
+/* keep your card helper and any other existing utilities intact */
