@@ -216,17 +216,18 @@ const TeamCard: React.FC<{
 // Petroleum Partners Slider Component
 const CarBrandSlider: React.FC = () => {
   const partners = [
-    { name: 'Shell', code: 'SHELL' },
-    { name: 'ExxonMobil', code: 'XOM' },
-    { name: 'BP', code: 'BP' },
-    { name: 'Chevron', code: 'CVX' },
-    { name: 'Saudi Aramco', code: 'ARAMCO' },
-    { name: 'TotalEnergies', code: 'TOTAL' },
-    { name: 'Equinor', code: 'EQNR' },
-    { name: 'ConocoPhillips', code: 'COP' }
+    { name: 'Shell', domain: 'shell.com', code: 'SHELL' },
+    { name: 'ExxonMobil', domain: 'exxonmobil.com', code: 'XOM' },
+    { name: 'BP', domain: 'bp.com', code: 'BP' },
+    { name: 'Chevron', domain: 'chevron.com', code: 'CVX' },
+    { name: 'Saudi Aramco', domain: 'aramco.com', code: 'ARAMCO' },
+    { name: 'TotalEnergies', domain: 'totalenergies.com', code: 'TOTAL' },
+    { name: 'Equinor', domain: 'equinor.com', code: 'EQNR' },
+    { name: 'ConocoPhillips', domain: 'conocophillips.com', code: 'COP' }
   ]
 
   const [isPaused, setIsPaused] = useState(false)
+  const getLogoUrl = (domain: string) => `https://logo.clearbit.com/${domain}?size=200`
 
   return (
     <div className="py-12 bg-white overflow-hidden">
@@ -248,11 +249,28 @@ const CarBrandSlider: React.FC = () => {
             transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
           >
             {partners.concat(partners).map((partner, index) => (
-              <div key={index} className="flex-shrink-0 w-28 h-16 flex items-center justify-center">
-                <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg p-4 border border-gray-200 w-full h-full flex items-center justify-center hover:shadow-lg hover:border-primary/50 transition-all duration-300">
-                  <div className="text-center">
-                    <div className="font-bold text-primary text-xs">{partner.code}</div>
-                    <div className="text-gray-600 text-xs mt-1 font-medium truncate max-w-20">{partner.name}</div>
+              <div key={index} className="flex-shrink-0 w-32 h-20 flex items-center justify-center">
+                <div className="bg-white rounded-lg p-3 border border-gray-200 w-full h-full flex items-center justify-center hover:shadow-xl hover:border-gray-300 transition-all duration-300 group cursor-pointer">
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    <img 
+                      src={getLogoUrl(partner.domain)} 
+                      alt={partner.name}
+                      className="max-w-[90%] max-h-[90%] object-contain group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        // Fallback if logo fails to load
+                        const target = e.target as HTMLImageElement
+                        target.style.display = 'none'
+                        const parent = target.parentElement
+                        if (parent && parent.parentElement) {
+                          parent.parentElement.innerHTML = `
+                            <div class="text-center">
+                              <div class="font-bold text-primary text-xs">${partner.code}</div>
+                              <div class="text-gray-600 text-xs mt-1 font-medium">${partner.name}</div>
+                            </div>
+                          `
+                        }
+                      }}
+                    />
                   </div>
                 </div>
               </div>
