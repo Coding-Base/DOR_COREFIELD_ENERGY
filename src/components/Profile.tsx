@@ -228,84 +228,110 @@ const ProfileModal: React.FC<{ partner: Partner | null; onClose: () => void }> =
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         transition={{ type: 'spring', damping: 25 }}
-        className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 lg:p-8">
-          <div className="flex justify-between items-start mb-6">
-            <div className="flex items-center gap-4">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white text-2xl font-bold">
-                {partner.photo ? (
-                  <img src={partner.photo} alt={partner.name} className="w-full h-full rounded-full object-cover" />
-                ) : (
-                  partner.name.split(' ').slice(0, 2).map(n => n[0]).join('')
+        <div className="p-6 lg:p-10">
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="float-right p-2 hover:bg-gray-100 rounded-full transition-colors mb-4"
+            aria-label="Close modal"
+          >
+            <Icons.Close />
+          </button>
+
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            {/* Left: Photo Section */}
+            <div className="lg:col-span-2 flex items-start justify-center">
+              <div className="w-full">
+                <div className="aspect-square rounded-2xl bg-gradient-to-br from-primary to-secondary overflow-hidden shadow-lg">
+                  {partner.photo ? (
+                    <img 
+                      src={partner.photo} 
+                      alt={partner.name} 
+                      className="w-full h-full object-cover" 
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-white text-6xl font-bold">
+                      {partner.name.split(' ').slice(0, 2).map(n => n[0]).join('')}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Details Section */}
+            <div className="lg:col-span-3 space-y-6">
+              {/* Header */}
+              <div>
+                <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">{partner.name}</h2>
+                <p className="text-lg text-primary font-semibold">{partner.title}</p>
+              </div>
+
+              {/* Contact & Location Info */}
+              <div className="space-y-3 pb-4 border-b border-gray-200">
+                <div className="flex items-center gap-3 text-gray-700">
+                  <Icons.MapPin className="text-primary flex-shrink-0" />
+                  <span className="text-sm">{partner.location}</span>
+                </div>
+                <div className="flex items-center gap-3 text-gray-700">
+                  <Icons.Clock className="text-primary flex-shrink-0" />
+                  <span className="text-sm">{partner.experience}</span>
+                </div>
+                <div className="flex items-center gap-3 text-gray-700">
+                  <Icons.Mail className="text-primary flex-shrink-0" />
+                  <a href={`mailto:${partner.email}`} className="text-primary hover:underline text-sm">{partner.email}</a>
+                </div>
+                {partner.phone && (
+                  <div className="flex items-center gap-3 text-gray-700">
+                    <Icons.Phone className="text-primary flex-shrink-0" />
+                    <a href={`tel:${partner.phone}`} className="text-primary hover:underline text-sm">{partner.phone}</a>
+                  </div>
                 )}
               </div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">{partner.name}</h2>
-                <p className="text-primary font-semibold">{partner.title}</p>
-              </div>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              aria-label="Close modal"
-            >
-              <Icons.Close />
-            </button>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-gray-600">
-                <Icons.MapPin className="text-primary" />
-                <span>{partner.location}</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-600">
-                <Icons.GraduationCap />
-                <span>{partner.degree}</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-600">
-                <Icons.Clock />
-                <span>{partner.experience}</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-600">
-                <Icons.Mail />
-                <a href={`mailto:${partner.email}`} className="text-primary hover:underline">{partner.email}</a>
-              </div>
-              {partner.phone && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Icons.Phone />
-                  <a href={`tel:${partner.phone}`} className="text-primary hover:underline">{partner.phone}</a>
+              {/* Education */}
+              {partner.degree && (
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 text-sm">Education</h4>
+                  <p className="text-gray-700 text-sm">{partner.degree}</p>
                 </div>
               )}
-            </div>
-            {partner.specialties && (
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Specialties</h4>
-                <div className="flex flex-wrap gap-2">
-                  {partner.specialties.map((spec, i) => (
-                    <span key={i} className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
-                      {spec}
-                    </span>
-                  ))}
+
+              {/* Specialties */}
+              {partner.specialties && (
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3 text-sm">Specialties</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {partner.specialties.map((spec, i) => (
+                      <span key={i} className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium">
+                        {spec}
+                      </span>
+                    ))}
+                  </div>
                 </div>
+              )}
+
+              {/* Biography */}
+              {partner.bio && (
+                <div className="pt-2">
+                  <h4 className="font-semibold text-gray-900 mb-2 text-sm">About</h4>
+                  <p className="text-gray-700 leading-relaxed text-sm">{partner.bio}</p>
+                </div>
+              )}
+
+              {/* Close Button */}
+              <div className="pt-4">
+                <button
+                  onClick={onClose}
+                  className="w-full px-6 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-xl hover:opacity-90 transition-all duration-300 font-medium text-sm"
+                >
+                  Close
+                </button>
               </div>
-            )}
-          </div>
-
-          <div className="mb-6">
-            <h4 className="font-semibold text-gray-900 mb-2">Biography</h4>
-            <p className="text-gray-700 leading-relaxed text-sm">{partner.bio}</p>
-          </div>
-
-          <div className="text-right">
-            <button
-              onClick={onClose}
-              className="px-6 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-xl hover:opacity-90 transition-all duration-300 font-medium text-sm"
-            >
-              Close
-            </button>
+            </div>
           </div>
         </div>
       </motion.div>
