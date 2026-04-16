@@ -414,7 +414,7 @@ export default function Home() {
                 />
               </div>
               <div>
-                <div className="text-xl font-bold text-gray-900">DOJ COREFIELD ENERGY</div>
+                <div className="text-xl font-bold text-gray-900">DOJ COREFIELD ENERGY LIMITED</div>
                 <div className="text-xs text-gray-600">Energy Services</div>
               </div>
             </div>
