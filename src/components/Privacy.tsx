@@ -70,14 +70,16 @@ export default function Privacy() {
     {
       icon: <Icons.Eye />,
       title: "Information We Collect",
-      content: "At RK AUTOS Custom Garage, we collect information that you provide directly to us, including:",
+      content: "At DOJ COREFIELD ENERGY LIMITED, we collect information that you provide directly to us, including:",
       items: [
-        "Personal identification information (Name, email address, phone number)",
-        "Vehicle information (make, model, year, VIN, modifications)",
+        "Personal identification information (Name, email address, phone number, professional credentials)",
+        "Organizational details (Company name, department, role, business classification)",
+        "Project specifications and operational requirements",
+        "HSE and compliance documentation",
         "Service history and maintenance records",
-        "Payment information for completed services",
+        "Payment and contractual information",
         "Communication preferences and feedback",
-        "Custom project specifications and requirements"
+        "Field operation data and asset integrity information"
       ]
     },
     {
@@ -85,24 +87,25 @@ export default function Privacy() {
       title: "How We Use Your Information",
       content: "We use the information we collect to:",
       items: [
-        "Provide, maintain, and improve our automotive services",
+        "Provide, maintain, and improve our petroleum services",
         "Process transactions and send related information",
-        "Send service reminders and maintenance notifications",
-        "Manage custom project specifications and requirements",
+        "Schedule field operations and maintenance activities",
+        "Manage HSE compliance and regulatory requirements",
         "Respond to your comments, questions, and requests",
-        "Communicate about promotions, upcoming events, and news",
-        "Monitor and analyze trends, usage, and activities"
+        "Communicate about operational updates and service announcements",
+        "Monitor and analyze trends, usage, and activities in petroleum services",
+        "Ensure asset integrity and operational excellence"
       ]
     },
     {
       icon: <Icons.Shield />,
       title: "Information Sharing",
-      content: "We do not sell, trade, or rent your personal identification information to others. We may share generic aggregated demographic information not linked to any personal identification information regarding visitors and users with our business partners and trusted affiliates for the purposes outlined above."
+      content: "We do not sell, trade, or rent your personal identification information to others. We may share generic aggregated demographic information not linked to any personal identification information regarding clients and users with our business partners and trusted affiliates for the purposes outlined above. Sensitive operational data is only shared with authorized personnel and regulatory bodies as required by law."
     },
     {
       icon: <Icons.Lock />,
       title: "Data Security",
-      content: "We implement appropriate data collection, storage, and processing practices and security measures to protect against unauthorized access, alteration, disclosure, or destruction of your personal information, transaction information, and data stored on our systems."
+      content: "We implement appropriate data collection, storage, and processing practices and security measures to protect against unauthorized access, alteration, disclosure, or destruction of your personal information, operational data, HSE records, and sensitive information stored on our systems. All petroleum operations data is handled according to international standards and regulations."
     }
   ];
 
@@ -121,13 +124,13 @@ export default function Privacy() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-neutral-50">
       {/* Navigation */}
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-orange-500">
+              <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-primary">
                 <img 
                   src={image}
                   alt="RK AUTOS Logo"
@@ -142,10 +145,10 @@ export default function Privacy() {
             
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
-              <Link to="/" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Home</Link>
-              <Link to="/services" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Services</Link>
-              <Link to="/profiles" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Profiles</Link>
-              <Link to="/contact" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contact</Link>
+              <Link to="/" className="text-gray-700 hover:text-primary font-medium transition-colors">Home</Link>
+              <Link to="/services" className="text-gray-700 hover:text-primary font-medium transition-colors">Services</Link>
+              <Link to="/profiles" className="text-gray-700 hover:text-primary font-medium transition-colors">Profiles</Link>
+              <Link to="/contact" className="text-gray-700 hover:text-primary font-medium transition-colors">Contact</Link>
             </div>
 
             {/* Mobile Menu Button */}
@@ -166,21 +169,21 @@ export default function Privacy() {
             <div className="flex flex-col space-y-4 pb-4 border-t border-gray-200 pt-4">
               <Link 
                 to="/" 
-                className="text-gray-700 hover:text-orange-600 font-medium transition-colors py-2"
+                className="text-gray-700 hover:text-primary font-medium transition-colors py-2"
                 onClick={handleNavClick}
               >
                 Home
               </Link>
               <Link 
                 to="/about" 
-                className="text-gray-700 hover:text-orange-600 font-medium transition-colors py-2"
+                className="text-gray-700 hover:text-primary font-medium transition-colors py-2"
                 onClick={handleNavClick}
               >
                 About
               </Link>
               <Link 
                 to="/contact" 
-                className="text-gray-700 hover:text-orange-600 font-medium transition-colors py-2"
+                className="text-gray-700 hover:text-primary font-medium transition-colors py-2"
                 onClick={handleNavClick}
               >
                 Contact
@@ -191,15 +194,15 @@ export default function Privacy() {
       </nav>
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-orange-600 to-orange-700 text-white py-16">
+      <div className="bg-gradient-to-r from-primary to-secondary text-white py-16">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <AnimatedSection direction="up" delay={200}>
+          <AnimatedSection delay={0.2}>
             <div className="w-20 h-20 bg-white bg-opacity-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
-              <Icons.Shield className="text-white" />
+              <div className="text-white"><Icons.Shield /></div>
             </div>
             <h1 className="text-5xl font-bold mb-6">Privacy Policy</h1>
-            <p className="text-xl text-orange-100 max-w-2xl mx-auto">
-              Your privacy and data security are our top priorities at RK AUTOS
+            <p className="text-xl text-white/90 max-w-2xl mx-auto">
+              Your privacy and data security are fundamental to our commitment at DOJ COREFIELD ENERGY LIMITED
             </p>
           </AnimatedSection>
         </div>
@@ -207,8 +210,8 @@ export default function Privacy() {
 
       <div className="max-w-6xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         {/* Last Updated */}
-        <AnimatedSection direction="up" delay={300}>
-          <div className="bg-orange-500 text-white rounded-2xl p-6 text-center mb-12">
+        <AnimatedSection delay={0.3}>
+          <div className="bg-primary text-white rounded-2xl p-6 text-center mb-12">
             <p className="text-lg font-semibold">Last updated: December 2024</p>
           </div>
         </AnimatedSection>
@@ -216,11 +219,11 @@ export default function Privacy() {
         {/* Privacy Sections */}
         <div className="space-y-8">
           {privacySections.map((section, index) => (
-            <AnimatedSection key={index} direction="up" delay={400 + index * 100}>
+            <AnimatedSection key={index} delay={0.4 + index * 0.05}>
               <div className="bg-white rounded-3xl shadow-lg p-8">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center">
-                    <div className="text-orange-600">
+                  <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+                    <div className="text-primary">
                       {section.icon}
                     </div>
                   </div>
@@ -241,10 +244,10 @@ export default function Privacy() {
           ))}
 
           {/* Your Rights Section */}
-          <AnimatedSection direction="up" delay={800}>
-            <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-3xl p-8">
+          <AnimatedSection delay={0.8}>
+            <div className="bg-gradient-to-r from-primary to-secondary text-white rounded-3xl p-8">
               <h2 className="text-2xl font-bold mb-6">Your Rights</h2>
-              <p className="text-orange-100 mb-6 text-lg">
+              <p className="text-white/80 mb-6 text-lg">
                 You have the right to:
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -259,23 +262,23 @@ export default function Privacy() {
           </AnimatedSection>
 
           {/* Contact Information */}
-          <AnimatedSection direction="up" delay={900}>
+          <AnimatedSection delay={0.9}>
             <div className="bg-white rounded-3xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Contact Us</h2>
               <p className="text-gray-700 mb-6 text-lg">
                 If you have any questions about this Privacy Policy or how we handle your data, please contact us:
               </p>
-              <div className="bg-orange-50 rounded-2xl p-6 border border-orange-200">
+              <div className="bg-primary/5 rounded-2xl p-6 border border-primary/20">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-3">RK AUTOS Custom Garage</h3>
-                    <p className="text-gray-600">123 Auto Street</p>
-                    <p className="text-gray-600">Repair City, RC 12345</p>
+                    <h3 className="font-semibold text-gray-900 mb-3">DOJ COREFIELD ENERGY LIMITED</h3>
+                    <p className="text-gray-600">Lagos, Nigeria</p>
+                    <p className="text-gray-600">Providing integrated petroleum services</p>
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-3">Contact Details</h3>
-                    <p className="text-gray-600">Email: privacy@rkautos.com</p>
-                    <p className="text-gray-600">Phone: (555) 123-4567</p>
+                    <p className="text-gray-600">Email: privacy@dojcorefield.com</p>
+                    <p className="text-gray-600">Phone: +234 903 990 4685</p>
                   </div>
                 </div>
               </div>
@@ -283,8 +286,8 @@ export default function Privacy() {
           </AnimatedSection>
 
           {/* Policy Updates */}
-          <AnimatedSection direction="up" delay={1000}>
-            <div className="bg-orange-100 rounded-3xl p-8 border border-orange-200">
+          <AnimatedSection delay={1.0}>
+            <div className="bg-primary/10 rounded-3xl p-8 border border-primary/20">
               <h3 className="text-xl font-bold text-gray-900 mb-4">Policy Updates</h3>
               <p className="text-gray-700 mb-4">
                 We may update this privacy policy from time to time. We will notify you of any changes by posting 

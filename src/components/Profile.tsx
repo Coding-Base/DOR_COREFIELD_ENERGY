@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import image from './logork.jpg'
+import okallaPhoto from './IMG-20260415-WA0078.jpg'
 
 type Partner = {
   id: number;
@@ -66,7 +67,7 @@ const Icons = {
 // Animation variants
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } }
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
 }
 
 // Animated Section Component
@@ -96,28 +97,28 @@ const AnimatedSection: React.FC<{
 const samplePartners: Partner[] = [
   {
     id: 1,
-    name: 'Engr. John Doe',
-    title: 'Founder / Managing Director',
+    name: 'Engr. Okalla Christian',
+    title: 'Co-director',
     location: 'Lagos, Nigeria',
-    email: 'john.doe@dojcorefield.com',
-    phone: '+234 800 000 0000',
-    degree: 'B.Eng Petroleum Engineering',
-    experience: '18+ years in upstream operations and field services',
-    bio: 'Seasoned petroleum engineer with extensive experience in drilling supervision, operations management, and HSE compliance. Led major projects across West Africa.',
-    specialties: ['Drilling Operations', 'Field Development', 'HSE Management'],
-    photo: ''
+    email: 'Okallachristian@gmail.com',
+    phone: '+234 9039904685',
+    degree: 'B.Eng., M.Eng., Ph.D',
+    experience: '10+ years',
+    bio: 'Experienced petroleum engineer with a strong academic background and field expertise. Specializes in operational excellence, asset integrity management, and technical innovations in offshore and onshore operations.',
+    specialties: ['Petroleum Engineering', 'Operations Management', 'Asset Integrity'],
+    photo: okallaPhoto
   },
   {
     id: 2,
-    name: 'Mrs. Ada Nwosu',
-    title: 'Co-Founder / Commercial Director',
-    location: 'Abuja, Nigeria',
-    email: 'ada.nwosu@dojcorefield.com',
+    name: 'Mr. Destiny Uzoh',
+    title: 'Co-director',
+    location: 'Aachen, Germany',
+    email: 'destiny.uzor@rwth-aachen.de',
     phone: '+234 800 000 0001',
-    degree: 'MBA, Finance',
-    experience: '12+ years managing commercial operations and logistics in oil & gas',
-    bio: 'Experienced commercial lead focused on supply chain, procurement, and client relations. Expert in contract negotiation and strategic partnerships.',
-    specialties: ['Supply Chain Management', 'Procurement', 'Commercial Strategy'],
+    degree: 'B.Tech., MSc.',
+    experience: '8+ years',
+    bio: 'Technically proficient leader with international academic credentials and field exposure across Europe and Africa. Expertise spans project delivery, technical consulting, and strategic business development in the petroleum services sector.',
+    specialties: ['Project Management', 'Technical Consulting', 'Business Development'],
     photo: ''
   },
   {
@@ -534,7 +535,7 @@ export default function Profile() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-gray-400 text-xs">
                   <Icons.Phone className="w-4 h-4" />
-                  <span>+234 800 000 0000</span>
+                  <span>+234 9039904685</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-400 text-xs">
                   <Icons.MapPin className="w-4 h-4" />

@@ -86,7 +86,7 @@ const Icons = {
 // Animation variants
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } }
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
 }
 
 // Animated Section Component
@@ -357,7 +357,7 @@ export default function About() {
               className="bg-white rounded-3xl shadow-lg p-8 h-full border border-gray-100"
             >
               <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6">
-                <Icons.Shield className="text-primary" />
+                <div className="text-primary"><Icons.Shield /></div>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Vision</h3>
               <p className="text-gray-700 text-sm leading-relaxed">
@@ -530,7 +530,7 @@ export default function About() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-gray-400 text-xs">
                   <Icons.Phone className="w-4 h-4" />
-                  <span>+234 800 000 0000</span>
+                  <span>+234 9039904685</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-400 text-xs">
                   <Icons.MapPin className="w-4 h-4" />

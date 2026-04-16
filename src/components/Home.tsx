@@ -33,7 +33,7 @@ const cn = (...classes: (string | undefined | boolean)[]) => classes.filter(Bool
 // Animation variants
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } }
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
 }
 
 const staggerContainer = {
@@ -146,7 +146,7 @@ const TestimonialCard: React.FC<{
         ))}
       </div>
       <div className="mb-4">
-        <Icons.Quote className="text-primary opacity-20 mb-2" />
+        <div className="text-primary opacity-20 mb-2"><Icons.Quote /></div>
         <p className="text-gray-700 italic text-sm">"{content}"</p>
       </div>
       <div className="flex items-center gap-3">
@@ -415,7 +415,7 @@ export default function Home() {
               </div>
               <div>
                 <div className="text-xl font-bold text-gray-900">DOJ COREFIELD ENERGY</div>
-                <div className="text-xs text-gray-600">Petroleum Services</div>
+                <div className="text-xs text-gray-600">Energy Services</div>
               </div>
             </div>
             
@@ -423,6 +423,7 @@ export default function Home() {
             <div className="hidden md:flex items-center gap-8">
               <Link to="/" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">Home</Link>
               <Link to="/about" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">About</Link>
+              <Link to="/services" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">Services</Link>
               <Link to="/contact" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">Contact</Link>
               <Link to="/privacy" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">Privacy</Link>
               <Link to="/profiles" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">Profiles</Link>
@@ -467,6 +468,13 @@ export default function Home() {
                     onClick={handleNavClick}
                   >
                     About
+                  </Link>
+                  <Link 
+                    to="/services" 
+                    className="text-gray-700 hover:text-primary font-medium transition-colors py-2 text-sm"
+                    onClick={handleNavClick}
+                  >
+                    Services
                   </Link>
                   <Link 
                     to="/contact" 
@@ -541,7 +549,7 @@ export default function Home() {
           >
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
               Delivering Reliable Petroleum Operations
-              <span className="block text-primary text-3xl md:text-4xl">Field Operations • Maintenance • Logistics</span>
+              <span className="block text-white text-3xl md:text-4xl">Field Operations • Maintenance • Logistics</span>
             </h1>
             <p className="text-lg md:text-xl mb-8 text-white/90 leading-relaxed">
               DOJ COREFIELD ENERGY LIMITED provides integrated petroleum services from field operations and
@@ -616,7 +624,7 @@ export default function Home() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <AnimatedSection direction="right">
+            <AnimatedSection>
               <div>
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Why Choose DOJ COREFIELD?</h2>
                 <div className="space-y-4">
@@ -696,14 +704,14 @@ export default function Home() {
       {/* Capabilities Section */}
       <section className="py-20 bg-neutral-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimatedSection direction="up" delay={200}>
+          <AnimatedSection delay={0.2}>
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Capabilities</h2>
               <p className="text-gray-600 max-w-2xl mx-auto text-sm">Integrated services that keep your operations safe and productive.</p>
             </div>
           </AnimatedSection>
-          <AnimatedSection direction="up" delay={300}>
-            <Grid container spacing={6} sx={{ justifyContent: 'center' }}>
+          <AnimatedSection delay={0.3}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[{
                 title: 'Operations & Mobilization',
                 desc: 'Rapid site mobilization, crew management and on-site logistics.',
@@ -725,7 +733,7 @@ export default function Home() {
                 icon: '✓',
                 image: doj3
               }].map((c, i) => (
-                <Grid item xs={12} sm={6} md={6} lg={3} key={i}>
+                <div key={i} className="flex-1 min-w-0">
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -753,9 +761,9 @@ export default function Home() {
                       </CardContent>
                     </Card>
                   </motion.div>
-                </Grid>
+                </div>
               ))}
-            </Grid>
+            </div>
           </AnimatedSection>
         </div>
       </section>
@@ -763,13 +771,13 @@ export default function Home() {
       {/* Case Studies Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimatedSection direction="up" delay={200}>
+          <AnimatedSection delay={0.2}>
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Case Studies</h2>
               <p className="text-gray-600 max-w-2xl mx-auto text-sm">Selected project highlights demonstrating impact and expertise.</p>
             </div>
           </AnimatedSection>
-          <AnimatedSection direction="up" delay={300}>
+          <AnimatedSection delay={0.3}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[{
                 title: 'Offshore Platform Mobilization',
@@ -925,7 +933,7 @@ export default function Home() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-gray-400 text-xs">
                   <Icons.Phone className="w-4 h-4" />
-                  <span>+234 800 000 0000</span>
+                  <span>+234 9039904685</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-400 text-xs">
                   <Icons.MapPin className="w-4 h-4" />
