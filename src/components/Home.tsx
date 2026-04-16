@@ -11,6 +11,7 @@ import rig1 from './rig1.jfif'
 import rig2 from './rig2.avif'
 import doj3 from './doj3.jfif'
 import rigVideo from './Offshore_Rig_Video_Generation.mp4'
+import { companyLogos } from './logoUrls'
 
 // Icons (same as before, but I've kept them for brevity)
 const Icons = {
@@ -216,18 +217,17 @@ const TeamCard: React.FC<{
 // Petroleum Partners Slider Component
 const CarBrandSlider: React.FC = () => {
   const partners = [
-    { name: 'Shell', domain: 'shell.com', code: 'SHELL' },
-    { name: 'ExxonMobil', domain: 'exxonmobil.com', code: 'XOM' },
-    { name: 'BP', domain: 'bp.com', code: 'BP' },
-    { name: 'Chevron', domain: 'chevron.com', code: 'CVX' },
-    { name: 'Saudi Aramco', domain: 'aramco.com', code: 'ARAMCO' },
-    { name: 'TotalEnergies', domain: 'totalenergies.com', code: 'TOTAL' },
-    { name: 'Equinor', domain: 'equinor.com', code: 'EQNR' },
-    { name: 'ConocoPhillips', domain: 'conocophillips.com', code: 'COP' }
+    { name: 'Shell', code: 'SHELL' },
+    { name: 'ExxonMobil', code: 'XOM' },
+    { name: 'BP', code: 'BP' },
+    { name: 'Chevron', code: 'CVX' },
+    { name: 'Saudi Aramco', code: 'ARAMCO' },
+    { name: 'TotalEnergies', code: 'TOTAL' },
+    { name: 'Equinor', code: 'EQNR' },
+    { name: 'ConocoPhillips', code: 'COP' }
   ]
 
   const [isPaused, setIsPaused] = useState(false)
-  const getLogoUrl = (domain: string) => `https://logo.clearbit.com/${domain}?size=200`
 
   return (
     <div className="py-12 bg-white overflow-hidden">
@@ -253,9 +253,9 @@ const CarBrandSlider: React.FC = () => {
                 <div className="bg-white rounded-lg p-3 border border-gray-200 w-full h-full flex items-center justify-center hover:shadow-xl hover:border-gray-300 transition-all duration-300 group cursor-pointer">
                   <div className="relative w-full h-full flex items-center justify-center">
                     <img 
-                      src={getLogoUrl(partner.domain)} 
+                      src={companyLogos[partner.name]} 
                       alt={partner.name}
-                      className="max-w-[90%] max-h-[90%] object-contain group-hover:scale-105 transition-transform duration-300"
+                      className="max-w-[85%] max-h-[85%] object-contain group-hover:scale-105 transition-transform duration-300"
                       onError={(e) => {
                         // Fallback if logo fails to load
                         const target = e.target as HTMLImageElement
