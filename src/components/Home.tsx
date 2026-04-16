@@ -3,6 +3,7 @@ import { Grid, Card, CardContent, CardMedia, Typography, Button } from '@mui/mat
 import { Link } from 'react-router-dom'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import image from './logork.jpg'
+import Navigation from './Navigation'
 import image2 from './hero.avif'
 import heroimage from './DOJFULL2.avif'
 import PIPE from './pipefull2.jfif'
@@ -287,7 +288,6 @@ const CountUp: React.FC<{ end: number; duration?: number }> = ({ end, duration =
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
 
   const services = [
@@ -395,117 +395,9 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const handleNavClick = () => {
-    setIsMobileMenuOpen(false)
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-neutral-50 home-root">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-primary">
-                <img 
-                  src={image}
-                  alt="DOJ COREFIELD Logo"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div>
-                <div className="text-xl font-bold text-gray-900">DOJ COREFIELD ENERGY LIMITED</div>
-                <div className="text-xs text-gray-600">Energy Services</div>
-              </div>
-            </div>
-            
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-8">
-              <Link to="/" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">Home</Link>
-              <Link to="/about" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">About</Link>
-              <Link to="/services" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">Services</Link>
-              <Link to="/contact" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">Contact</Link>
-              <Link to="/privacy" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">Privacy</Link>
-              <Link to="/profiles" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">Profiles</Link>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <div className="flex items-center gap-4">
-              <button className="bg-gradient-to-r from-primary to-secondary text-white px-6 py-2 rounded-xl hover:opacity-95 transition-all duration-300 transform hover:scale-105 font-medium hidden md:block text-sm shadow-md">
-                Request Support
-              </button>
-              <button 
-                className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                aria-label="Toggle menu"
-              >
-                {isMobileMenuOpen ? <Icons.Close /> : <Icons.Menu />}
-              </button>
-            </div>
-          </div>
-
-          {/* Mobile Navigation Menu */}
-          <AnimatePresence>
-            {isMobileMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                className="md:hidden overflow-hidden"
-              >
-                <div className="flex flex-col space-y-4 pb-4 border-t border-gray-200 pt-4">
-                  <Link 
-                    to="/" 
-                    className="text-gray-700 hover:text-primary font-medium transition-colors py-2 text-sm"
-                    onClick={handleNavClick}
-                  >
-                    Home
-                  </Link>
-                  <Link 
-                    to="/about" 
-                    className="text-gray-700 hover:text-primary font-medium transition-colors py-2 text-sm"
-                    onClick={handleNavClick}
-                  >
-                    About
-                  </Link>
-                  <Link 
-                    to="/services" 
-                    className="text-gray-700 hover:text-primary font-medium transition-colors py-2 text-sm"
-                    onClick={handleNavClick}
-                  >
-                    Services
-                  </Link>
-                  <Link 
-                    to="/contact" 
-                    className="text-gray-700 hover:text-primary font-medium transition-colors py-2 text-sm"
-                    onClick={handleNavClick}
-                  >
-                    Contact
-                  </Link>
-                  <Link 
-                    to="/privacy" 
-                    className="text-gray-700 hover:text-primary font-medium transition-colors py-2 text-sm"
-                    onClick={handleNavClick}
-                  >
-                    Privacy
-                  </Link>
-                  <Link 
-                    to="/profiles" 
-                    className="text-gray-700 hover:text-primary font-medium transition-colors py-2 text-sm"
-                    onClick={handleNavClick}
-                  >
-                    Profiles
-                  </Link>
-                  <button className="bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-xl hover:opacity-95 transition-all duration-300 font-medium w-full text-center text-sm">
-                    Request Support
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </nav>
+      <Navigation showRequestButton={true} />
 
       {/* Hero Section with Parallax Effect */}
       <section className="relative bg-gradient-to-r from-primary to-secondary text-white overflow-hidden">

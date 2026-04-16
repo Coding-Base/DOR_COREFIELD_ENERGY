@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import image from './logork.jpg'
+import Navigation from './Navigation'
 
 const Icons = {
   Phone: (props: any) => (
@@ -104,7 +105,6 @@ export default function Contact() {
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -126,81 +126,9 @@ export default function Contact() {
     }
   }
 
-  // Close mobile menu when clicking on a link
-  const handleNavClick = () => {
-    setIsMobileMenuOpen(false)
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-gray-100">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-orange-500">
-                <img 
-                  src={image}
-                  alt="RK AUTOS Logo"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div>
-                <div className="text-xl font-bold text-gray-900">DOJ COREFIELD ENERGY LIMITED</div>
-                <div className="text-xs text-gray-600">Petroleum Services</div>
-              </div>
-            </Link>
-            
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-8">
-              <Link to="/" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Home</Link>
-              <Link to="/about" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">About</Link>
-              <Link to="/services" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Services</Link>
-              <Link to="/profiles" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Profiles</Link>
-              <Link to="/privacy" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Privacy</Link>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <div className="flex items-center gap-4">
-              <button 
-                className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              >
-                {isMobileMenuOpen ? <Icons.Close /> : <Icons.Menu />}
-              </button>
-            </div>
-          </div>
-
-          {/* Mobile Navigation Menu */}
-          <div className={`md:hidden transition-all duration-300 ease-in-out overflow-hidden ${
-            isMobileMenuOpen ? 'max-h-64 opacity-100 py-4' : 'max-h-0 opacity-0'
-          }`}>
-            <div className="flex flex-col space-y-4 pb-4 border-t border-gray-200 pt-4">
-              <Link 
-                to="/" 
-                className="text-gray-700 hover:text-orange-600 font-medium transition-colors py-2"
-                onClick={handleNavClick}
-              >
-                Home
-              </Link>
-              <Link 
-                to="/about" 
-                className="text-gray-700 hover:text-orange-600 font-medium transition-colors py-2"
-                onClick={handleNavClick}
-              >
-                About
-              </Link>
-              <Link 
-                to="/privacy" 
-                className="text-gray-700 hover:text-orange-600 font-medium transition-colors py-2"
-                onClick={handleNavClick}
-              >
-                Privacy
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navigation />
 
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-orange-600 to-orange-700 text-white py-16">

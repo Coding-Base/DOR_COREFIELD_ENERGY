@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import image from './logork.jpg'
+import Navigation from './Navigation'
 
 const Icons = {
   Shield: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>,
@@ -64,7 +65,6 @@ const AnimatedSection: React.FC<{
 };
 
 export default function Privacy() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const privacySections = [
     {
@@ -118,80 +118,9 @@ export default function Privacy() {
     "Withdraw consent at any time"
   ];
 
-  // Close mobile menu when clicking on a link
-  const handleNavClick = () => {
-    setIsMobileMenuOpen(false)
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-neutral-50">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-primary">
-                <img 
-                  src={image}
-                  alt="RK AUTOS Logo"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div>
-                <div className="text-xl font-bold text-gray-900">DOJ COREFIELD ENERGY LIMITED</div>
-                <div className="text-xs text-gray-600">Petroleum Services</div>
-              </div>
-            </Link>
-            
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-8">
-              <Link to="/" className="text-gray-700 hover:text-primary font-medium transition-colors">Home</Link>
-              <Link to="/services" className="text-gray-700 hover:text-primary font-medium transition-colors">Services</Link>
-              <Link to="/profiles" className="text-gray-700 hover:text-primary font-medium transition-colors">Profiles</Link>
-              <Link to="/contact" className="text-gray-700 hover:text-primary font-medium transition-colors">Contact</Link>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <div className="flex items-center gap-4">
-              <button 
-                className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              >
-                {isMobileMenuOpen ? <Icons.Close /> : <Icons.Menu />}
-              </button>
-            </div>
-          </div>
-
-          {/* Mobile Navigation Menu */}
-          <div className={`md:hidden transition-all duration-300 ease-in-out overflow-hidden ${
-            isMobileMenuOpen ? 'max-h-64 opacity-100 py-4' : 'max-h-0 opacity-0'
-          }`}>
-            <div className="flex flex-col space-y-4 pb-4 border-t border-gray-200 pt-4">
-              <Link 
-                to="/" 
-                className="text-gray-700 hover:text-primary font-medium transition-colors py-2"
-                onClick={handleNavClick}
-              >
-                Home
-              </Link>
-              <Link 
-                to="/about" 
-                className="text-gray-700 hover:text-primary font-medium transition-colors py-2"
-                onClick={handleNavClick}
-              >
-                About
-              </Link>
-              <Link 
-                to="/contact" 
-                className="text-gray-700 hover:text-primary font-medium transition-colors py-2"
-                onClick={handleNavClick}
-              >
-                Contact
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navigation />
 
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-primary to-secondary text-white py-16">
