@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import image from './logork.jpg'
 import Navigation from './Navigation'
@@ -138,6 +138,39 @@ const CountUp: React.FC<{ end: number; duration?: number; suffix?: string }> = (
   }, [end, duration, isInView])
 
   return <span ref={ref}>{count}{suffix}</span>
+}
+
+// CTA Button Component
+const CTAButton: React.FC<{ text: string; variant?: 'primary' | 'secondary' }> = ({ text, variant = 'primary' }) => {
+  const navigate = useNavigate()
+  
+  const handleClick = () => {
+    navigate('/contact')
+  }
+
+  if (variant === 'secondary') {
+    return (
+      <motion.button
+        onClick={handleClick}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="border-2 border-white text-white px-8 py-4 rounded-xl hover:bg-white hover:text-primary transition-all duration-300 font-semibold text-sm"
+      >
+        {text}
+      </motion.button>
+    )
+  }
+
+  return (
+    <motion.button
+      onClick={handleClick}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      className="bg-white text-primary px-8 py-4 rounded-xl hover:bg-opacity-90 transition-all duration-300 font-semibold text-sm shadow-lg"
+    >
+      {text}
+    </motion.button>
+  )
 }
 
 export default function About() {
@@ -381,20 +414,8 @@ export default function About() {
               Contact us to discuss your next project or learn more about our comprehensive petroleum services.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-white text-primary px-8 py-4 rounded-xl hover:bg-opacity-90 transition-all duration-300 font-semibold text-sm shadow-lg"
-              >
-                Get in Touch
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="border-2 border-white text-white px-8 py-4 rounded-xl hover:bg-white hover:text-primary transition-all duration-300 font-semibold text-sm"
-              >
-                Request a Quote
-              </motion.button>
+              <CTAButton text="Get in Touch" />
+              <CTAButton text="Request a Quote" variant="secondary" />
             </div>
           </AnimatedSection>
         </div>
