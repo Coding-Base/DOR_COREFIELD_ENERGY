@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Grid, Card, CardContent, CardMedia, Typography, Button } from '@mui/material'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import image from './logork.jpg'
 import Navigation from './Navigation'
@@ -289,6 +289,7 @@ const CountUp: React.FC<{ end: number; duration?: number }> = ({ end, duration =
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [showScrollTop, setShowScrollTop] = useState(false)
+  const navigate = useNavigate()
 
   const services = [
     {
@@ -452,14 +453,16 @@ export default function Home() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-xl hover:opacity-95 transition-all duration-300 font-semibold text-sm shadow-lg shadow-primary/25"
+                onClick={() => navigate('/contact')}
+                className="bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-xl hover:opacity-95 transition-all duration-300 font-semibold text-sm shadow-lg shadow-primary/25 cursor-pointer"
               >
                 Request Field Support
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="border-2 border-white text-white px-8 py-4 rounded-xl hover:bg-white hover:text-primary transition-all duration-300 font-semibold text-sm"
+                onClick={() => navigate('/services')}
+                className="border-2 border-white text-white px-8 py-4 rounded-xl hover:bg-white hover:text-primary transition-all duration-300 font-semibold text-sm cursor-pointer"
               >
                 Learn About Services
               </motion.button>

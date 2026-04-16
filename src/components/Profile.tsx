@@ -215,34 +215,57 @@ const PartnerCard: React.FC<{ partner: Partner; onClick: () => void; index: numb
 const ProfileModal: React.FC<{ partner: Partner | null; onClose: () => void }> = ({ partner, onClose }) => {
   if (!partner) return null
 
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        transition={{ type: 'spring', damping: 25 }}
-        className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="p-6 lg:p-10">
-          {/* Close Button */}
-          <button
-            onClick={onClose}
-            className="float-right p-2 hover:bg-gray-100 rounded-full transition-colors mb-4"
-            aria-label="Close modal"
-          >
-            <Icons.Close />
-          </button>
+  const scrollbarStyles = `
+    .profile-modal-content::-webkit-scrollbar {
+      width: 8px;
+    }
+    .profile-modal-content::-webkit-scrollbar-track {
+      background: #f5f5f5;
+      border-radius: 10px;
+    }
+    .profile-modal-content::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #1E2A78 0%, #5A2D82 100%);
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+    .profile-modal-content::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #5A2D82 0%, #1E2A78 100%);
+      box-shadow: 0 0 6px rgba(30, 42, 120, 0.3);
+    }
+  `
 
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+  return (
+    <>
+      <style>{scrollbarStyles}</style>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          transition={{ type: 'spring', damping: 25 }}
+          className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Scrollable Content */}
+          <div className="profile-modal-content overflow-y-auto flex-1">
+            <div className="p-6 lg:p-10">
+              {/* Close Button */}
+              <button
+                onClick={onClose}
+                className="float-right p-2 hover:bg-gray-100 rounded-full transition-colors mb-4"
+                aria-label="Close modal"
+              >
+                <Icons.Close />
+              </button>
+
+              {/* Main Content Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
             {/* Left: Photo Section */}
             <div className="lg:col-span-2 flex items-start justify-center">
               <div className="w-full">
@@ -333,9 +356,11 @@ const ProfileModal: React.FC<{ partner: Partner | null; onClose: () => void }> =
               </div>
             </div>
           </div>
-        </div>
+            </div>
+          </div>
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </>
   )
 }
 
