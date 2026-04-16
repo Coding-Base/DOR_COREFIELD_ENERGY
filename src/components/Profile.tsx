@@ -106,7 +106,7 @@ const samplePartners: Partner[] = [
     degree: 'B.Eng., M.Eng., Ph.D',
     experience: '10+ years',
     bio: 'Experienced petroleum engineer with a strong academic background and field expertise. Specializes in operational excellence, asset integrity management, and technical innovations in offshore and onshore operations.',
-    specialties: ['Petroleum Engineering', 'Operations Management', 'Asset Integrity'],
+    specialties: ['Petroleum Engineering', 'Operations Management', 'Asset Integrity', 'Well Intervention', 'Offshore Operations'],
     photo: okallaPhoto
   },
   {
