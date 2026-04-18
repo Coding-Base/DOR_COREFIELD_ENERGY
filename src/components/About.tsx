@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import image from './logork.jpg'
 import Navigation from './Navigation'
+import okallaPhoto from './IMG-20260415-WA0078.jpg'
+import destinyPhoto from '../pages/IMG-20260417-WA0018.jpg'
 
 // Icons - petroleum industry focused
 const Icons = {
@@ -378,11 +380,10 @@ export default function About() {
             <p className="text-gray-600 mb-12 max-w-2xl mx-auto text-sm">
               Our experienced leadership brings decades of petroleum industry expertise to every project.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
-                { name: "Daniel Okoro", role: "Chief Executive Officer", experience: "20+ years" },
-                { name: "Aisha Bello", role: "HSE Director", experience: "15+ years" },
-                { name: "Samuel Adu", role: "Technical Operations Lead", experience: "18+ years" }
+                { name: "Engr. Okalla Christian", role: "Co-director", experience: "10+ years", photo: okallaPhoto },
+                { name: "Mr. Destiny Uzoh", role: "Co-director", experience: "8+ years", photo: destinyPhoto }
               ].map((leader, index) => (
                 <motion.div
                   key={index}
@@ -390,14 +391,20 @@ export default function About() {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                   whileHover={{ y: -5 }}
-                  className="bg-white rounded-2xl shadow-lg p-6 text-center border border-gray-100"
+                  className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100"
                 >
-                  <div className="w-24 h-24 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
-                    {leader.name.charAt(0)}
+                  <div className="w-full h-64 overflow-hidden bg-gray-200">
+                    <img 
+                      src={leader.photo} 
+                      alt={leader.name}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-1">{leader.name}</h3>
-                  <div className="text-primary font-semibold mb-2 text-sm">{leader.role}</div>
-                  <div className="text-gray-500 text-xs">{leader.experience} experience</div>
+                  <div className="p-6 text-center">
+                    <h3 className="text-lg font-bold text-gray-900 mb-1">{leader.name}</h3>
+                    <div className="text-primary font-semibold mb-2 text-sm">{leader.role}</div>
+                    <div className="text-gray-500 text-xs">{leader.experience} experience</div>
+                  </div>
                 </motion.div>
               ))}
             </div>

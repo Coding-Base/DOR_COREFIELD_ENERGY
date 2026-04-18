@@ -12,6 +12,7 @@ import rig2 from './rig2.avif'
 import doj3 from './doj3.jfif'
 import rigVideo from './Offshore_Rig_Video_Generation.mp4'
 import { companyLogos } from './logoUrls'
+import okallaPhoto from './IMG-20260415-WA0078.jpg'
 
 // Icons (same as before, but I've kept them for brevity)
 const Icons = {
@@ -750,25 +751,23 @@ export default function Home() {
             <div className="bg-white rounded-3xl shadow-xl p-8 lg:p-12">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div>
-                  <div className="w-32 h-32 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center text-white text-4xl font-bold mb-6">
-                    DC
+                  <div className="w-32 h-32 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center text-white text-3xl font-bold mb-6">
+                    OC
                   </div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-4">Daniel Okoro</h2>
-                  <div className="text-primary text-xl font-semibold mb-4 text-sm">Chief Executive Officer</div>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-4">Engr. Okalla Christian</h2>
+                  <div className="text-primary text-xl font-semibold mb-4 text-sm">Co-director</div>
                   <p className="text-gray-600 leading-relaxed mb-6 text-sm">
-                    "Our mission is to deliver safe, compliant and efficient petroleum services that maximize asset
-                    uptime and operational performance for our clients. We combine field expertise with disciplined
-                    HSE practices to deliver measurable outcomes."
+                    "Our mission is to deliver safe, compliant and efficient petroleum services that maximize asset uptime and operational performance for our clients. We combine field expertise with disciplined HSE practices to deliver measurable outcomes."
                   </p>
                   <div className="flex items-center gap-4 text-gray-500 text-xs">
                     <Icons.Clock className="w-4 h-4" />
-                    <span>20+ Years Industry Experience</span>
+                    <span>10+ Years Industry Experience</span>
                   </div>
                 </div>
                 <div className="relative">
                   <img
-                    src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=1000&q=80"
-                    alt="CEO portrait"
+                    src={okallaPhoto}
+                    alt="Engr. Okalla Christian"
                     className="rounded-2xl shadow-lg w-full h-96 object-cover"
                   />
                 </div>
