@@ -764,11 +764,12 @@ export default function Home() {
                     <span>10+ Years Industry Experience</span>
                   </div>
                 </div>
-                <div className="relative">
+                <div className="relative flex justify-center items-center">
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-3xl"></div>
                   <img
                     src={okallaPhoto}
                     alt="Engr. Okalla Christian"
-                    className="rounded-2xl shadow-lg w-full h-96 object-cover"
+                    className="rounded-3xl shadow-2xl w-full max-w-sm h-96 object-cover relative z-10 border-4 border-white"
                   />
                 </div>
               </div>

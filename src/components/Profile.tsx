@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import image from './logork.jpg'
 import okallaPhoto from './IMG-20260415-WA0078.jpg'
+import destinyPhoto from '../pages/IMG-20260417-WA0018.jpg'
 import Navigation from './Navigation'
 
 type Partner = {
@@ -120,7 +121,7 @@ const samplePartners: Partner[] = [
     experience: '8+ years',
     bio: 'Technically proficient leader with international academic credentials and field exposure across Europe and Africa. Expertise spans project delivery, technical consulting, and strategic business development in the petroleum services sector.',
     specialties: ['Project Management', 'Technical Consulting', 'Business Development'],
-    photo: ''
+    photo: destinyPhoto
   },
   {
     id: 3,

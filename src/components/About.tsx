@@ -391,13 +391,20 @@ export default function About() {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                   whileHover={{ y: -5 }}
-                  className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100"
+                  className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300"
                 >
-                  <div className="w-full h-64 overflow-hidden bg-gray-200">
+                  <div className="w-full h-72 overflow-hidden bg-gray-200 relative">
                     <img 
                       src={leader.photo} 
                       alt={leader.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none'
+                        const parent = (e.target as HTMLImageElement).parentElement
+                        if (parent) {
+                          parent.innerHTML = '<div class="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center"><div class="text-center"><div class="text-4xl font-bold text-primary">' + leader.name.charAt(0) + '</div></div></div>'
+                        }
+                      }}
                     />
                   </div>
                   <div className="p-6 text-center">
