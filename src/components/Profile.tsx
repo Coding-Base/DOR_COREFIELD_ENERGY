@@ -5,6 +5,8 @@ import image from './logork.jpg'
 import okallaPhoto from './IMG-20260415-WA0078.jpg'
 import destinyPhoto from '../pages/IMG-20260417-WA0018.jpg'
 import Navigation from './Navigation'
+import WhitneyChioma from './HR.jpg'
+import EBUKA from './1000649554.jpg'
 
 type Partner = {
   id: number;
@@ -104,7 +106,7 @@ const samplePartners: Partner[] = [
     location: 'Lagos, Nigeria',
     email: 'Okallachristian@gmail.com',
     phone: '+234 9039904685',
-    degree: 'B.Eng., M.Eng., Ph.D',
+    degree: 'B.Eng., M.Eng.',
     experience: '10+ years',
     bio: 'Experienced petroleum engineer with a strong academic background and field expertise. Specializes in operational excellence, asset integrity management, and technical innovations in offshore and onshore operations.',
     specialties: ['Petroleum Engineering', 'Operations Management', 'Asset Integrity', 'Well Intervention', 'Offshore Operations'],
@@ -112,42 +114,42 @@ const samplePartners: Partner[] = [
   },
   {
     id: 2,
-    name: 'Mr. Destiny Uzoh',
+    name: 'Mr. Chukwuebuka Destiny Uzor',
     title: 'Co-director',
-    location: 'Aachen, Germany',
+    location: 'Aachen NRW, Germany',
     email: 'destiny.uzor@rwth-aachen.de',
     phone: '+234 800 000 0001',
-    degree: 'B.Tech., MSc.',
+    degree: 'B.Tech Geology and Geophysics., M.Sc Energy and Mineral Resources, Applied Geosciences RWTH Aachen University',
     experience: '8+ years',
     bio: 'Technically proficient leader with international academic credentials and field exposure across Europe and Africa. Expertise spans project delivery, technical consulting, and strategic business development in the petroleum services sector.',
-    specialties: ['Project Management', 'Technical Consulting', 'Business Development'],
+    specialties: ['Subsurface Resources Exploration','Geothermal Energy Development','Data-Driven Geoscience Solution','Sustainable Energy Projects'],
     photo: destinyPhoto
   },
   {
     id: 3,
-    name: 'Engr. Samuel Adu',
-    title: 'Technical Operations Manager',
-    location: 'Port Harcourt, Nigeria',
-    email: 'samuel.adu@dojcorefield.com',
-    phone: '+234 800 000 0002',
-    degree: 'M.Sc. Mechanical Engineering',
-    experience: '15+ years in pipeline integrity and facility maintenance',
-    bio: 'Specialist in pipeline inspection, maintenance, and integrity management. Certified NDT level III with extensive field experience.',
-    specialties: ['Pipeline Integrity', 'NDT Testing', 'Facility Maintenance'],
-    photo: ''
+    name: 'John Whitney Chioma',
+    title: 'HR MANAGER',
+    location: 'Lagos, Nigeria',
+    email: 'whitneyjohn101@gmail.com',
+    phone: '09032095295',
+    degree: 'B.Eng, Petroluem Engineer',
+    experience: '3+ years',
+    bio: 'Results-driven professional skilled in project management, customer support, and HR management, with a strong focus on efficiency, organization, and effective team support',
+    specialties: ['Social Media Manager', 'Project Manager', 'Virtual Assistant', 'Content Creator'],
+    photo:WhitneyChioma
   },
   {
     id: 4,
-    name: 'Dr. Aisha Bello',
-    title: 'HSE & Compliance Director',
+    name: 'Engr. Dike Chukwuebuka Francis',
+    title: 'Operations Manager ',
     location: 'Lagos, Nigeria',
-    email: 'aisha.bello@dojcorefield.com',
-    phone: '+234 800 000 0003',
-    degree: 'Ph.D. Environmental Science',
-    experience: '10+ years in HSE management and regulatory compliance',
-    bio: 'Leads our HSE programs, ensuring compliance with international standards. Experienced in auditing and safety culture development.',
-    specialties: ['HSE Audits', 'Regulatory Compliance', 'Training & Competency'],
-    photo: ''
+    email: 'skippin@yahoo.com',
+    phone: '08105628087',
+    degree: 'B.Eng., M.Eng., Petroleum Engineering',
+    experience: '8+ years ',
+    bio: 'Dedicated and result oriented  operations manager with extensive experience in overseeing petroleum engineering projects and ensuring operational efficiency and safety.',
+    specialties: ['Field Operations', 'Onshore Operations ', 'Offshore Operations','Well Intervention'],
+    photo:EBUKA
   }
 ]
 
