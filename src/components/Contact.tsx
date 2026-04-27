@@ -157,7 +157,7 @@ export default function Contact() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900 text-lg mb-2">Phone</h3>
-                      <p className="text-gray-600 text-lg">(555) 123-4567</p>
+                      <p className="text-gray-600 text-lg"> +234 9039904685</p>
                       <p className="text-sm text-gray-500 mt-1">Mon-Fri: 7AM-7PM</p>
                     </div>
                   </div>
@@ -168,7 +168,7 @@ export default function Contact() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900 text-lg mb-2">Email</h3>
-                      <p className="text-gray-600 text-lg">service@rkautos.com</p>
+                      <p className="text-gray-600 text-lg">DojCorefield@gmail.com</p>
                       <p className="text-sm text-gray-500 mt-1">We respond within 24 hours</p>
                     </div>
                   </div>
@@ -179,8 +179,8 @@ export default function Contact() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900 text-lg mb-2">Address</h3>
-                      <p className="text-gray-600 text-lg">123 Auto Street</p>
-                      <p className="text-gray-600">Repair City, RC 12345</p>
+                      <p className="text-gray-600 text-lg">Obinze Owerri Imo state</p>
+                      <p className="text-gray-600">Imo State</p>
                     </div>
                   </div>
 
@@ -206,10 +206,10 @@ export default function Contact() {
                   <h3 className="text-xl font-bold">Emergency Services</h3>
                 </div>
                 <p className="text-orange-100 mb-6 text-lg">
-                  24/7 roadside assistance and emergency repair services available for urgent situations.
+                  24/7 services
                 </p>
                 <button className="bg-white text-orange-600 px-8 py-4 rounded-2xl font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 w-full">
-                  Call Emergency Line: (555) 911-AUTO
+                  Call Emergency Line: +234 9039904685
                 </button>
               </div>
             </AnimatedSection>
@@ -264,13 +264,13 @@ export default function Contact() {
                       className="w-full px-4 py-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
                     >
                       <option value="">Select a service</option>
-                      <option value="engine">Engine Repair</option>
-                      <option value="brakes">Brake Services</option>
-                      <option value="transmission">Transmission</option>
-                      <option value="electrical">Electrical Systems</option>
+                      <option value="engine">Well Intervention</option>
+                      <option value="brakes">Onshore Operations</option>
+                      <option value="transmission">Offshore Operaations</option>
+                      <option value="electrical">Man Power Recruitment</option>
                       <option value="maintenance">Maintenance</option>
-                      <option value="custom">Custom Work</option>
-                      <option value="performance">Performance Upgrade</option>
+                      <option value="custom">Custom Services </option>
+                      <option value="performance">Offshore Installation</option>
                       <option value="other">Other</option>
                     </select>
                   </div>
@@ -315,9 +315,9 @@ export default function Contact() {
               <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Icons.MapPin className="text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Visit Our Garage</h3>
-              <p className="text-gray-600 mb-4">123 Auto Street, Repair City, RC 12345</p>
-              <p className="text-sm text-gray-500">Easy access with ample parking available</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Visit Our Head Office </h3>
+              <p className="text-gray-600 mb-4">Obinze Owerri Imo state </p>
+              <p className="text-sm text-gray-500">Easy access</p>
             </div>
           </div>
         </AnimatedSection>

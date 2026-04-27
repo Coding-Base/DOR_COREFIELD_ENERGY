@@ -13,6 +13,10 @@ import doj3 from './doj3.jfif'
 import rigVideo from './Offshore_Rig_Video_Generation.mp4'
 import { companyLogos } from './logoUrls'
 import okallaPhoto from './IMG-20260415-WA0078.jpg'
+import destinyPhoto from '../pages/IMG-20260417-WA0018.jpg'
+import WhitneyChioma from './HR.jpg'
+import EBUKA from './1000649554.jpg'
+
 
 // Icons (same as before, but I've kept them for brevity)
 const Icons = {
@@ -369,28 +373,32 @@ export default function Home() {
 
   const teamMembers = [
     {
-      name: "Daniel Okoro",
-      role: "Chief Operations Engineer",
-      experience: "18+ years",
-      specialization: ["Field Operations", "Wellsite Management", "Asset Integrity"]
+      name: "Engr. Okalla Christian",
+      role: "Co-director",
+      experience: "8+ years",
+      specialization: ["Well Intervention", "Wellsite Management", "Asset Integrity",'Petroleum Engineering'],
+      image:okallaPhoto
     },
     {
-      name: "Aisha Bello",
-      role: "HSE Manager",
-      experience: "12+ years",
-      specialization: ["HSE Systems", "Training", "Regulatory Compliance"]
+      name: "Mr. Chukwuebuka Destiny Uzor",
+      role: "Co-director",
+      experience: "8+ years",
+      specialization: ['Subsurface Resources Exploration','Geothermal Energy Development','Data-Driven Geoscience Solution','Sustainable Energy Projects'],
+      image:destinyPhoto
     },
     {
-      name: "Samuel Adu",
-      role: "Maintenance Lead",
-      experience: "15+ years",
-      specialization: ["Pipeline Maintenance", "Pumps & Valves", "NDT"]
+      name: "Engr. Dike Chukwuebuka Francis",
+      role: "Chief Operations Manager",
+      experience: "8+ years",
+      specialization: ['Field Operations', 'Onshore Operations ', 'Offshore Operations','Well Intervention',"Pipeline Maintenance", "Pumps & Valves", "NDT"],
+      image:EBUKA
     },
     {
-      name: "Nneka Eze",
-      role: "Logistics Coordinator",
-      experience: "10+ years",
-      specialization: ["Supply Chain", "Mobilization", "Fleet Management"]
+      name: "John Whitney Chioma",
+      role: "HR Manager",
+      experience: "3+ years",
+      specialization: ['Social Media Manager', 'Project Manager', 'Virtual Assistant', 'Content Creator'],
+      image:WhitneyChioma
     }
   ]
 
@@ -761,7 +769,7 @@ export default function Home() {
                   </p>
                   <div className="flex items-center gap-4 text-gray-500 text-xs">
                     <Icons.Clock className="w-4 h-4" />
-                    <span>10+ Years Industry Experience</span>
+                    <span>8+ Years Industry Experience</span>
                   </div>
                 </div>
                 <div className="relative flex justify-center items-center">
@@ -791,6 +799,7 @@ export default function Home() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="bg-white text-primary px-8 py-4 rounded-xl hover:bg-opacity-90 transition-all duration-300 font-semibold text-sm shadow-lg"
+                onClick={() => navigate('/contact')}
               >
                 Request Proposal
               </motion.button>
@@ -798,6 +807,7 @@ export default function Home() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="border-2 border-white text-white px-8 py-4 rounded-xl hover:bg-white hover:text-primary transition-all duration-300 font-semibold text-sm"
+                onClick={() => navigate('/contact')}
               >
                 Contact Us
               </motion.button>

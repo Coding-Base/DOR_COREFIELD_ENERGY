@@ -141,7 +141,7 @@ const samplePartners: Partner[] = [
   {
     id: 4,
     name: 'Engr. Dike Chukwuebuka Francis',
-    title: 'Operations Manager ',
+    title: ' Chief Operations Manager ',
     location: 'Lagos, Nigeria',
     email: 'skippin@yahoo.com',
     phone: '08105628087',
