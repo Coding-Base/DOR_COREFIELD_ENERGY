@@ -56,8 +56,12 @@ const AnimatedSection: React.FC<{
 export default function Services() {
   const services = [
     {
-      title: 'Fuel Supply & Logistics',
+      title: 'Procurement',
       description: 'Reliable fuel procurement, storage and distribution for commercial and industrial clients.'
+    },
+    {
+      title: 'Crane Leasing & Services',
+      description: 'Comprehensiv crane leasing and maintenance services for construction and industrial applications.'
     },
     {
       title: 'Drilling & Well Support',
@@ -87,7 +91,7 @@ export default function Services() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-orange-500">
+              <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-orange-100">
                 <img 
                   src={image}
                   alt="DOJ COREFIELD LOGO"
@@ -101,17 +105,17 @@ export default function Services() {
             </Link>
 
             <div className="hidden md:flex items-center gap-8">
-              <Link to="/" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Home</Link>
-              <Link to="/about" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">About</Link>
-              <Link to="/services" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Services</Link>
-              <Link to="/profiles" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Profiles</Link>
-              <Link to="/contact" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contact</Link>
+              <Link to="/" className="text-gray-700 hover:text-orange-600 font-medium transition-colors duration-200">Home</Link>
+              <Link to="/about" className="text-gray-700 hover:text-orange-600 font-medium transition-colors duration-200">About</Link>
+              <Link to="/services" className="text-gray-700 hover:text-orange-600 font-medium transition-colors duration-200">Services</Link>
+              <Link to="/profiles" className="text-gray-700 hover:text-orange-600 font-medium transition-colors duration-200">Profiles</Link>
+              <Link to="/contact" className="text-gray-700 hover:text-orange-600 font-medium transition-colors duration-200">Contact</Link>
             </div>
           </div>
         </div>
       </nav>
 
-      <div className="bg-gradient-to-r from-orange-600 to-orange-700 text-white py-16">
+      <div className="bg-gradient-to-r from-primary via-orange-100/50 to-secondary text-white py-16">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <AnimatedSection direction="up" delay={200}>
             <h1 className="text-5xl font-bold mb-6">Our Services</h1>

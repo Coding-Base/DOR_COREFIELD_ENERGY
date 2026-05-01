@@ -8,18 +8,19 @@ module.exports = {
         secondary: '#5A2D82',
         neutral: '#2E2E2E',
         white: '#FFFFFF',
+        logoRed: '#FF2D2D', // Bright red from DOJ logo
         // Override orange palette so existing orange-* classes map to the new brand palette
         orange: {
-          50: '#FFFFFF',
-          100: '#F7F7FA',
-          200: '#EDECF6',
-          300: '#D4D2F0',
-          400: '#9C8FE6',
-          500: '#1E2A78',
-          600: '#5A2D82',
-          700: '#E11C2A',
-          800: '#1B234F',
-          900: '#16183A',
+          50: '#FFF5F5',
+          100: '#FFE8E8',
+          200: '#FFD1D1',
+          300: '#FFA3A3',
+          400: '#FF5555',
+          500: '#FF2D2D', // Updated to logo red
+          600: '#E41C1C',
+          700: '#CC1919',
+          800: '#991212',
+          900: '#660D0D',
         }
       }
     },

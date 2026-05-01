@@ -106,14 +106,24 @@ export default function Contact() {
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
     try {
-      const res = await fetch('/api/contact/', {
+      const formspreeId = import.meta.env.VITE_FORMSPREE_ID
+      if (!formspreeId) {
+        throw new Error('Formspree ID not configured')
+      }
+      const res = await fetch(`https://formspree.io/f/${formspreeId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          service: formData.service,
+          message: formData.message
+        })
       })
       if (!res.ok) throw new Error('Failed to send message')
       setFormData({ name: '', email: '', phone: '', service: '', message: '' })
@@ -131,11 +141,11 @@ export default function Contact() {
       <Navigation />
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-orange-600 to-orange-700 text-white py-16">
+      <div className="bg-gradient-to-br from-slate-800 via-amber-600/30 to-orange-600 text-white py-20">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <AnimatedSection direction="up" delay={200}>
-            <h1 className="text-5xl font-bold mb-6">Contact DOJ COREFIELD ENERGY</h1>
-            <p className="text-xl text-orange-100 max-w-2xl mx-auto">
+            <h1 className="text-5xl font-bold mb-6 text-white">Contact DOJ COREFIELD ENERGY</h1>
+            <p className="text-lg text-orange-100 max-w-2xl mx-auto font-medium">
               Reach our team for corporate inquiries, service requests, and technical support.
             </p>
           </AnimatedSection>
@@ -179,7 +189,7 @@ export default function Contact() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900 text-lg mb-2">Address</h3>
-                      <p className="text-gray-600 text-lg">Obinze Owerri Imo state</p>
+                      <p className="text-gray-600 text-lg">Aachen NRW, Germany Head Office  </p>
                       <p className="text-gray-600">Imo State</p>
                     </div>
                   </div>
@@ -200,15 +210,15 @@ export default function Contact() {
             </AnimatedSection>
 
             <AnimatedSection direction="right" delay={400}>
-              <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-3xl p-8">
+              <div className="bg-slate-900 text-white rounded-3xl p-8">
                 <div className="flex items-center gap-4 mb-4">
-                  <Icons.Wrench className="text-white" />
+                  <Icons.Wrench className="text-orange-100" />
                   <h3 className="text-xl font-bold">Emergency Services</h3>
                 </div>
                 <p className="text-orange-100 mb-6 text-lg">
                   24/7 services
                 </p>
-                <button className="bg-white text-orange-600 px-8 py-4 rounded-2xl font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 w-full">
+                <button className="bg-white text-orange-700 border border-orange-200 px-8 py-4 rounded-2xl font-semibold hover:bg-orange-50 transition-all duration-300 transform hover:scale-105 w-full">
                   Call Emergency Line: +234 9039904685
                 </button>
               </div>
@@ -228,7 +238,7 @@ export default function Contact() {
                       required
                       value={formData.name}
                       onChange={(e) => setFormData({...formData, name: e.target.value})}
-                      className="w-full px-4 py-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
+                      className="w-full px-4 py-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-orange-200 focus:border-orange-300 transition-all duration-200"
                       placeholder="Enter your full name"
                     />
                   </div>
@@ -239,7 +249,7 @@ export default function Contact() {
                       required
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      className="w-full px-4 py-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
+                      className="w-full px-4 py-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-orange-200 focus:border-orange-300 transition-all duration-200"
                       placeholder="Enter your email address"
                     />
                   </div>
@@ -252,7 +262,7 @@ export default function Contact() {
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      className="w-full px-4 py-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
+                      className="w-full px-4 py-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-orange-200 focus:border-orange-300 transition-all duration-200"
                       placeholder="Enter your phone number"
                     />
                   </div>
@@ -261,17 +271,17 @@ export default function Contact() {
                     <select
                       value={formData.service}
                       onChange={(e) => setFormData({...formData, service: e.target.value})}
-                      className="w-full px-4 py-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
+                      className="w-full px-4 py-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-orange-200 focus:border-orange-300 transition-all duration-200"
                     >
                       <option value="">Select a service</option>
-                      <option value="engine">Well Intervention</option>
-                      <option value="brakes">Onshore Operations</option>
-                      <option value="transmission">Offshore Operaations</option>
-                      <option value="electrical">Man Power Recruitment</option>
-                      <option value="maintenance">Maintenance</option>
-                      <option value="custom">Custom Services </option>
-                      <option value="performance">Offshore Installation</option>
-                      <option value="other">Other</option>
+                      <option value="Well Intervention">Well Intervention</option>
+                      <option value="Onshore Operations">Onshore Operations</option>
+                      <option value="Offshore Operations">Offshore Operations</option>
+                      <option value="Man Power Recruitment">Man Power Recruitment</option>
+                      <option value="Maintenance">Maintenance</option>
+                      <option value="Custom Services">Custom Services</option>
+                      <option value="Offshore Installation">Offshore Installation</option>
+                      <option value="Other">Other</option>
                     </select>
                   </div>
                 </div>
@@ -291,7 +301,7 @@ export default function Contact() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-orange-500 text-white py-4 px-6 rounded-2xl font-semibold hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-3"
+                  className="w-full bg-primary text-white py-4 px-6 rounded-2xl font-semibold hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-3"
                 >
                   {isSubmitting ? (
                     <>
@@ -312,8 +322,8 @@ export default function Contact() {
           <div className="bg-white rounded-3xl shadow-xl p-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Find Our Location</h2>
             <div className="bg-orange-100 rounded-2xl p-8 text-center">
-              <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Icons.MapPin className="text-white" />
+              <div className="w-16 h-16 bg-orange-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Icons.MapPin className="text-orange-700" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Visit Our Head Office </h3>
               <p className="text-gray-600 mb-4">Obinze Owerri Imo state </p>

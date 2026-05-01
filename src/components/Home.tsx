@@ -865,7 +865,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center gap-2 text-gray-400 text-xs">
                   <Icons.MapPin className="w-4 h-4" />
-                  <span>Lagos, Nigeria</span>
+                  <span>Aachen NRW, Germany Head Office</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-400 text-xs">
                   <Icons.Clock className="w-4 h-4" />

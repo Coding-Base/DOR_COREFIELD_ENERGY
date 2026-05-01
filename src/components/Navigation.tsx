@@ -53,12 +53,12 @@ export default function Navigation({ showRequestButton = false }: NavigationProp
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            <Link to="/" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">Home</Link>
-            <Link to="/about" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">About</Link>
-            <Link to="/services" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">Services</Link>
-            <Link to="/contact" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">Contact</Link>
-            <Link to="/privacy" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">Privacy</Link>
-            <Link to="/profiles" className="text-gray-700 hover:text-primary font-medium transition-colors text-sm">Profiles</Link>
+            <Link to="/" className="text-gray-700 hover:text-orange-700 font-medium transition-colors duration-200 text-sm">Home</Link>
+            <Link to="/about" className="text-gray-700 hover:text-orange-700 font-medium transition-colors duration-200 text-sm">About</Link>
+            <Link to="/services" className="text-gray-700 hover:text-orange-700 font-medium transition-colors duration-200 text-sm">Services</Link>
+            <Link to="/contact" className="text-gray-700 hover:text-orange-700 font-medium transition-colors duration-200 text-sm">Contact</Link>
+            <Link to="/privacy" className="text-gray-700 hover:text-orange-700 font-medium transition-colors duration-200 text-sm">Privacy</Link>
+            <Link to="/profiles" className="text-gray-700 hover:text-orange-700 font-medium transition-colors duration-200 text-sm">Profiles</Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -66,7 +66,7 @@ export default function Navigation({ showRequestButton = false }: NavigationProp
             {showRequestButton && (
               <button 
                 onClick={handleRequestSupport}
-                className="bg-gradient-to-r from-primary to-secondary text-white px-6 py-2 rounded-xl hover:opacity-95 transition-all duration-300 transform hover:scale-105 font-medium hidden md:block text-sm shadow-md"
+                className="bg-gradient-to-r from-orange-600 via-orange-500 to-orange-700 text-white px-6 py-2 rounded-xl hover:opacity-95 transition-all duration-300 transform hover:scale-105 font-medium hidden md:block text-sm shadow-md"
               >
                 Request Support
               </button>
@@ -94,42 +94,42 @@ export default function Navigation({ showRequestButton = false }: NavigationProp
               <div className="flex flex-col space-y-4 pb-4 border-t border-gray-200 pt-4">
                 <Link 
                   to="/" 
-                  className="text-gray-700 hover:text-primary font-medium transition-colors py-2 text-sm"
+                  className="text-gray-700 hover:text-orange-700 bg-transparent hover:bg-orange-100/70 font-medium transition-colors py-2 text-sm rounded-xl px-2"
                   onClick={handleNavClick}
                 >
                   Home
                 </Link>
                 <Link 
                   to="/about" 
-                  className="text-gray-700 hover:text-primary font-medium transition-colors py-2 text-sm"
+                  className="text-gray-700 hover:text-orange-700 bg-transparent hover:bg-orange-100/70 font-medium transition-colors py-2 text-sm rounded-xl px-2"
                   onClick={handleNavClick}
                 >
                   About
                 </Link>
                 <Link 
                   to="/services" 
-                  className="text-gray-700 hover:text-primary font-medium transition-colors py-2 text-sm"
+                  className="text-gray-700 hover:text-orange-700 bg-transparent hover:bg-orange-100/70 font-medium transition-colors py-2 text-sm rounded-xl px-2"
                   onClick={handleNavClick}
                 >
                   Services
                 </Link>
                 <Link 
                   to="/contact" 
-                  className="text-gray-700 hover:text-primary font-medium transition-colors py-2 text-sm"
+                  className="text-gray-700 hover:text-orange-700 bg-transparent hover:bg-orange-100/70 font-medium transition-colors py-2 text-sm rounded-xl px-2"
                   onClick={handleNavClick}
                 >
                   Contact
                 </Link>
                 <Link 
                   to="/privacy" 
-                  className="text-gray-700 hover:text-primary font-medium transition-colors py-2 text-sm"
+                  className="text-gray-700 hover:text-orange-700 bg-transparent hover:bg-orange-100/70 font-medium transition-colors py-2 text-sm rounded-xl px-2"
                   onClick={handleNavClick}
                 >
                   Privacy
                 </Link>
                 <Link 
                   to="/profiles" 
-                  className="text-gray-700 hover:text-primary font-medium transition-colors py-2 text-sm"
+                  className="text-gray-700 hover:text-orange-700 bg-transparent hover:bg-orange-100/70 font-medium transition-colors py-2 text-sm rounded-xl px-2"
                   onClick={handleNavClick}
                 >
                   Profiles
@@ -137,7 +137,7 @@ export default function Navigation({ showRequestButton = false }: NavigationProp
                 {showRequestButton && (
                   <button 
                     onClick={handleRequestSupport}
-                    className="bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-xl hover:opacity-95 transition-all duration-300 font-medium w-full text-center text-sm"
+                    className="bg-gradient-to-r from-orange-600 via-orange-500 to-orange-700 text-white px-6 py-3 rounded-xl hover:opacity-95 transition-all duration-300 font-medium w-full text-center text-sm"
                   >
                     Request Support
                   </button>
