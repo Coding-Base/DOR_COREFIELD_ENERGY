@@ -326,7 +326,7 @@ export default function Contact() {
                 <Icons.MapPin className="text-orange-700" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Visit Our Head Office </h3>
-              <p className="text-gray-600 mb-4">Obinze Owerri Imo state </p>
+              <p className="text-gray-600 mb-4"> Aachen NRW, Germany </p>
               <p className="text-sm text-gray-500">Easy access</p>
             </div>
           </div>
