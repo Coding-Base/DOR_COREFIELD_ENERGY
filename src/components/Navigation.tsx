@@ -52,13 +52,13 @@ export default function Navigation({ showRequestButton = false }: NavigationProp
           </Link>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
-            <Link to="/" className="text-gray-700 hover:text-orange-700 font-medium transition-colors duration-200 text-sm">Home</Link>
-            <Link to="/about" className="text-gray-700 hover:text-orange-700 font-medium transition-colors duration-200 text-sm">About</Link>
-            <Link to="/services" className="text-gray-700 hover:text-orange-700 font-medium transition-colors duration-200 text-sm">Services</Link>
-            <Link to="/contact" className="text-gray-700 hover:text-orange-700 font-medium transition-colors duration-200 text-sm">Contact</Link>
-            <Link to="/privacy" className="text-gray-700 hover:text-orange-700 font-medium transition-colors duration-200 text-sm">Privacy</Link>
-            <Link to="/profiles" className="text-gray-700 hover:text-orange-700 font-medium transition-colors duration-200 text-sm">Profiles</Link>
+          <div className="hidden md:flex items-center gap-4">
+            <Link to="/" className="text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 text-sm">Home</Link>
+            <Link to="/about" className="text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 text-sm">About</Link>
+            <Link to="/services" className="text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 text-sm">Services</Link>
+            <Link to="/contact" className="text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 text-sm">Contact</Link>
+            <Link to="/privacy" className="text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 text-sm">Privacy</Link>
+            <Link to="/profiles" className="text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 text-sm">Profiles</Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -66,7 +66,7 @@ export default function Navigation({ showRequestButton = false }: NavigationProp
             {showRequestButton && (
               <button 
                 onClick={handleRequestSupport}
-                className="bg-gradient-to-r from-orange-600 via-orange-500 to-orange-700 text-white px-6 py-2 rounded-xl hover:opacity-95 transition-all duration-300 transform hover:scale-105 font-medium hidden md:block text-sm shadow-md"
+                className="bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 text-white px-6 py-2 rounded-xl hover:opacity-95 transition-all duration-300 transform hover:scale-105 font-medium hidden md:block text-sm shadow-md"
               >
                 Request Support
               </button>
