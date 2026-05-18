@@ -127,7 +127,7 @@ export default function Contact() {
       })
       if (!res.ok) throw new Error('Failed to send message')
       setFormData({ name: '', email: '', phone: '', service: '', message: '' })
-      alert('Thank youmessage was sent. We will respond shortly.')
+      alert('Thank you message was sent. We will respond shortly.')
     } catch (err) {
       console.error(err)
       alert('Failed to send message. Please try again later.')
