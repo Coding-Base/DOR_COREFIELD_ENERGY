@@ -4,7 +4,7 @@
   
   <!-- Homepage -->
   <url>
-    <loc>https://dojcorefield.com/</loc>
+    <loc>https://dojcorefieldenergy.com/</loc>
     <lastmod>2026-04-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
@@ -12,7 +12,7 @@
   
   <!-- About Page -->
   <url>
-    <loc>https://dojcorefield.com/about</loc>
+    <loc>https://dojcorefieldenergy.com/about</loc>
     <lastmod>2026-04-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
@@ -20,7 +20,7 @@
   
   <!-- Services Page -->
   <url>
-    <loc>https://dojcorefield.com/services</loc>
+    <loc>https://dojcorefieldenergy.com/services</loc>
     <lastmod>2026-04-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -28,28 +28,28 @@
   
   <!-- Service Details -->
   <url>
-    <loc>https://dojcorefield.com/services/field-operations</loc>
+    <loc>https://dojcorefieldenergy.com/services/field-operations</loc>
     <lastmod>2026-04-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://dojcorefield.com/services/pipeline-maintenance</loc>
+    <loc>https://dojcorefieldenergy.com/services/pipeline-maintenance</loc>
     <lastmod>2026-04-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://dojcorefield.com/services/equipment-inspection</loc>
+    <loc>https://dojcorefieldenergy.com/services/equipment-inspection</loc>
     <lastmod>2026-04-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://dojcorefield.com/services/hse-compliance</loc>
+    <loc>https://dojcorefieldenergy.com/services/hse-compliance</loc>
     <lastmod>2026-04-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -57,7 +57,7 @@
   
   <!-- Profiles Page -->
   <url>
-    <loc>https://dojcorefield.com/profiles</loc>
+    <loc>https://dojcorefieldenergy.com/profiles</loc>
     <lastmod>2026-04-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -65,7 +65,7 @@
   
   <!-- Contact Page -->
   <url>
-    <loc>https://dojcorefield.com/contact</loc>
+    <loc>https://dojcorefieldenergy.com/contact</loc>
     <lastmod>2026-04-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -73,7 +73,7 @@
   
   <!-- Privacy Policy -->
   <url>
-    <loc>https://dojcorefield.com/privacy</loc>
+    <loc>https://dojcorefieldenergy.com/privacy</loc>
     <lastmod>2026-04-16</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>

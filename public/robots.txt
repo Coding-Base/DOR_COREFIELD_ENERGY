@@ -32,4 +32,4 @@ User-agent: SemrushBot
 Disallow: /
 
 # Sitemap location
-Sitemap: https://dojcorefield.com/sitemap.xml
+Sitemap: https://dojcorefieldenergy.com/sitemap.xml
