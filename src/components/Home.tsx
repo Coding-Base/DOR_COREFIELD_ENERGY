@@ -425,6 +425,46 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Add Video Schema for Google Search Console
+  useEffect(() => {
+    const videoSchema = {
+      "@context": "https://schema.org",
+      "@type": "VideoObject",
+      "name": "DOJ COREFIELD ENERGY - Offshore Oil Platform Operations",
+      "description": "Comprehensive overview of our offshore oil platform operations, field services, and petroleum industry expertise in the oil and gas sector.",
+      "thumbnailUrl": [
+        "https://dojcorefieldenergy.com/hero.avif",
+        "https://dojcorefieldenergy.com/rig1.jfif",
+        "https://dojcorefieldenergy.com/DOJFULL2.avif"
+      ],
+      "uploadDate": "2024-01-15T08:00:00Z",
+      "duration": "PT2M30S",
+      "contentUrl": "https://dojcorefieldenergy.com/Offshore_Rig_Video_Generation.mp4",
+      "embedUrl": "https://dojcorefieldenergy.com/",
+      "publisher": {
+        "@type": "Organization",
+        "name": "DOJ COREFIELD ENERGY LIMITED",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://dojcorefieldenergy.com/logo.png",
+          "width": 100,
+          "height": 100
+        }
+      }
+    }
+
+    const script = document.createElement('script')
+    script.type = 'application/ld+json'
+    script.textContent = JSON.stringify(videoSchema)
+    document.head.appendChild(script)
+
+    return () => {
+      if (document.head.contains(script)) {
+        document.head.removeChild(script)
+      }
+    }
+  }, [])
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
