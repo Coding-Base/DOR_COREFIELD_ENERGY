@@ -17,6 +17,7 @@ import ProfilePage from './components/Profile'
 import ContactPage from './components/Contact'
 import Privacy from './components/Privacy'
 import InvoiceCreate from './pages/InvoiceCreate'
+import CareersPage from './pages/CareersPage'
 const queryClient = new QueryClient()
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
           <Route path="/services" element={<ServicesPage/>} />
           <Route path="/profiles" element={<ProfilePage/>} />
           <Route path="/contact" element={<ContactPage/>} />
+          <Route path="/careers" element={<CareersPage/>} />
           <Route path="/privacy" element={<Privacy/>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register/technician" element={<TechnicianRegister />} />

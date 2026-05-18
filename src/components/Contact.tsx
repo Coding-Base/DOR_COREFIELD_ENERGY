@@ -137,16 +137,16 @@ export default function Contact() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <Navigation />
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-slate-800 via-amber-600/30 to-orange-600 text-white py-20">
+      <div className="bg-gradient-to-br from-primary via-slate-700 to-secondary text-white py-24">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <AnimatedSection direction="up" delay={200}>
-            <h1 className="text-5xl font-bold mb-6 text-white">Contact DOJ COREFIELD ENERGY</h1>
-            <p className="text-lg text-orange-100 max-w-2xl mx-auto font-medium">
-              Reach our team for corporate inquiries, service requests, and technical support.
+            <h1 className="text-6xl md:text-6xl font-bold mb-6 text-white">Contact Us</h1>
+            <p className="text-xl text-orange-100 max-w-2xl mx-auto font-medium">
+              Reach our team for corporate inquiries, service requests, and technical support. We're here to help!
             </p>
           </AnimatedSection>
         </div>
@@ -178,7 +178,7 @@ export default function Contact() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900 text-lg mb-2">Email</h3>
-                      <p className="text-gray-600 text-lg">DojCorefield@gmail.com</p>
+                      <p className="text-gray-600 text-lg">support@dojcorefieldenergy.com</p>
                       <p className="text-sm text-gray-500 mt-1">We respond within 24 hours</p>
                     </div>
                   </div>

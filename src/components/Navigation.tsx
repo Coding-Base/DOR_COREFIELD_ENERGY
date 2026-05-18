@@ -57,6 +57,7 @@ export default function Navigation({ showRequestButton = false }: NavigationProp
             <Link to="/about" className="text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 text-sm">About</Link>
             <Link to="/services" className="text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 text-sm">Services</Link>
             <Link to="/contact" className="text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 text-sm">Contact</Link>
+            <Link to="/careers" className="text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 text-sm">Careers</Link>
             <Link to="/privacy" className="text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 text-sm">Privacy</Link>
             <Link to="/profiles" className="text-gray-700 hover:text-blue-700 font-medium transition-colors duration-200 text-sm">Profiles</Link>
           </div>
@@ -119,6 +120,13 @@ export default function Navigation({ showRequestButton = false }: NavigationProp
                   onClick={handleNavClick}
                 >
                   Contact
+                </Link>
+                <Link 
+                  to="/careers" 
+                  className="text-gray-700 hover:text-orange-700 bg-transparent hover:bg-orange-100/70 font-medium transition-colors py-2 text-sm rounded-xl px-2"
+                  onClick={handleNavClick}
+                >
+                  Careers
                 </Link>
                 <Link 
                   to="/privacy" 
