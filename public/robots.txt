@@ -31,6 +31,9 @@ Disallow: /
 # Sitemap location (important for video indexing)
 Sitemap: https://dojcorefieldenergy.com/sitemap.xml
 
+# Video sitemap (helps Google find video thumbnails and metadata)
+Sitemap: https://dojcorefieldenergy.com/video-sitemap.xml
+
 User-agent: SemrushBot
 Disallow: /
 

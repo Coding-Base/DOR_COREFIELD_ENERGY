@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+
+  <!-- Video sitemap for homepage video -->
+  <url>
+    <loc>https://dojcorefieldenergy.com/</loc>
+    <lastmod>2026-04-16</lastmod>
+    <video:video>
+      <video:thumbnail_loc>https://dojcorefieldenergy.com/og-image.jpg</video:thumbnail_loc>
+      <video:title>DOJ COREFIELD ENERGY - Offshore Oil Platform Operations</video:title>
+      <video:description>Overview of offshore oil platform operations, field services, and petroleum expertise.</video:description>
+      <video:content_loc>https://dojcorefieldenergy.com/Offshore_Rig_Video_Generation.mp4</video:content_loc>
+      <video:duration>150</video:duration>
+      <video:publication_date>2024-01-15T08:00:00Z</video:publication_date>
+    </video:video>
+  </url>
+
+</urlset>
